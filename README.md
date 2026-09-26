@@ -7,6 +7,10 @@ out, and those still seated waited for a gap instead?**
 The rule is a single parameter, `p_yield`: the probability that someone walking down the aisle
 stops to let a row out. `1` is the usual courtesy; `0` is aisle first.
 
+**Try it in the browser: https://carlosherrerauma.github.io/jet-exit/** (live simulation,
+Monte Carlo, [3D cabins](https://carlosherrerauma.github.io/jet-exit/cabin3d.html) and the
+[video annotator](https://carlosherrerauma.github.io/jet-exit/annotate.html)).
+
 ## Current result
 
 Over 100 simulated planes with the default parameters, courtesy takes 12:34 and aisle first
@@ -30,6 +34,7 @@ and the data section below.
 | `web/annotate.html` | Tool to annotate videos of real deboardings. |
 | `web/model.js` | JavaScript port of the model, bit-identical to the Python one. |
 | `sweep.js` | Sensitivity sweep on the JS port (about 20x faster). |
+| `build_site.py` | Builds the static site for GitHub Pages from `web/`. |
 | `DATA.md` | Sources, parameters still to be measured, and the measurement protocol. |
 
 ## Usage
@@ -42,8 +47,10 @@ python animate_deboarding.py --rows 12                # terminal animation
 node sweep.js --k 100 --csv sweep.csv                 # sensitivity sweep
 ```
 
-For the web pages, serve the `web/` folder (for example `python -m http.server -d web`) and
-open `http://localhost:8000`.
+For the web pages locally, run `python build_site.py` and serve the result
+(`python -m http.server -d _site`), then open `http://localhost:8000`. Every push to `main`
+deploys them to GitHub Pages (`.github/workflows/pages.yml`), after checking that the JS model
+still matches Python.
 
 ## The model in brief
 
