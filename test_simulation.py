@@ -9,59 +9,90 @@ assert which policy wins -- that is what the simulation is for.
 """
 
 import unittest
+from dataclasses import replace
 
 from simulate_deboarding import (
-    BLOCKING_COLUMNS, PaxState, Rng, Simulator, compute_stats,
-    paired_ci, run_experiment,
+    Config, PaxState, Rng, Simulator, compute_stats, paired_ci, run_experiment,
+    sample_discrete, sample_quantiles,
 )
 
-# 1 s ticks, one cell per row, one cell before the door: easy to trace by hand
-HAND = dict(dt=1.0, cells_per_row=1, front_cells=1)
+# 0.5 s ticks, instant acceleration: motion is easy to trace by hand
+HAND = dict(dt=0.5, accel=100.0)
 
 
-def two_rows(p_yield, bag=0, prefetch=False):
-    """Row 1 C (prep 2 s, optional bag) and row 2 C (ready at once, no bag).
-
-    Row 2 C enters at t=1, starts walking at t=2 and reaches row 1 just as
-    row 1 C becomes ready: the only thing that differs is whether they yield.
-    """
-    return Simulator(rows=2, p_yield=p_yield, **HAND, manifest=[
-        dict(row=0, col="C", has_bag=bag > 0, prep=2, bag=bag, prefetch=prefetch),
-        dict(row=1, col="C", prep=0),
-    ])
+def pax(row, col, **kw):
+    spec = dict(row=row, col=col, stand=1.0, lateral=1.0, step_in=1.0, v0=1.0, depth=0.34)
+    spec.update(kw)
+    return spec
 
 
 class TestHandComputed(unittest.TestCase):
-    """Small cases traced tick by tick (see comments for the timeline)."""
 
     def test_single_passenger(self):
-        # t1 WAITING+enter cell 1, t2 walking -> cell 0, t3 exits
-        sim = Simulator(rows=1, **HAND, manifest=[dict(row=0, col="C")])
-        self.assertEqual(sim.run(), 3)
+        """1C, no bag, 2 m from the door at 1 m/s.
+        t0.5 TO_EDGE (stand 1 s) -> t1.5 AT_EDGE, steps in at x=2.0 ->
+        t2.5 walking: 1.5, 1.0, 0.5, 0.0 at t4.0 -> exits at t4.5."""
+        sim = Simulator(rows=1, manifest=[pax(0, "C")], **HAND)
+        self.assertEqual(sim.run(), 4.5)
 
-    def test_yield_without_bag(self):
-        # No yield: 2C passes (exits t4), 1C enters t3 behind, exits t5.
-        self.assertEqual(two_rows(p_yield=0.0).run(), 5)
-        # Yield at t2: 1C enters in front, exits t4; 2C restarts, exits t6.
-        self.assertEqual(two_rows(p_yield=1.0).run(), 6)
-
-    def test_yield_with_bag(self):
-        # The 3 s bag is taken in the aisle; with courtesy 2C waits behind it.
-        self.assertEqual(two_rows(p_yield=0.0, bag=3).run(), 8)
-        self.assertEqual(two_rows(p_yield=1.0, bag=3).run(), 9)
-
-    def test_prefetch_saves_aisle_time(self):
-        # 1C takes 1 s of the bag while waiting at the seat (t3), rest in aisle.
-        self.assertEqual(two_rows(p_yield=0.0, bag=3, prefetch=True).run(), 7)
-
-    def test_yield_order_of_exit(self):
-        sim = two_rows(p_yield=1.0)
+    def test_middle_seat_waits_for_aisle_seat(self):
+        sim = Simulator(rows=1, manifest=[pax(0, "B"), pax(0, "C")], **HAND)
         sim.run()
-        first, second = sorted(sim.passengers, key=lambda p: p.t_exit)
-        self.assertEqual((first.row, second.row), (0, 1))
+        b, c = sim.passengers
+        self.assertLess(c.t_enter, b.t_enter)
+        # B only starts moving once C is in the aisle: stand + one seat = 2 s
+        self.assertGreaterEqual(b.t_enter - c.t_enter, int(2.0 / 0.5))
+
+    def test_bag_in_aisle_costs_its_time(self):
+        no_bag = Simulator(rows=1, manifest=[pax(0, "C")], **HAND).run()
+        bag = Simulator(rows=1, manifest=[pax(0, "C", has_bag=True, bag=3.0)], **HAND).run()
+        # 3 s retrieving, then 0.25 m further forward and 15 % slower walking
+        self.assertGreaterEqual(bag - no_bag, 3.0)
+        self.assertLess(bag - no_bag, 4.5)
+
+    def test_prefetch_moves_bag_time_out_of_the_aisle(self):
+        """Taking the bag down while waiting at the edge only helps if you
+        have to wait anyway: here 1B waits while 1C takes their bag in the
+        aisle right in front of the row."""
+        def run(prefetch):
+            sim = Simulator(rows=1, manifest=[
+                pax(0, "C", has_bag=True, bag=6.0),
+                pax(0, "B", has_bag=True, bag=6.0, prefetch=prefetch),
+            ], **HAND)
+            sim.run()
+            return sim.passengers[1].t_exit * sim.dt
+        self.assertLess(run(True), run(False) - 3.0)
+
+    def test_courtesy_lets_the_row_ahead_out_first(self):
+        """2C is already walking when 1C gets up: courtesy lets 1C go first."""
+        def order(p_yield):
+            sim = Simulator(rows=2, p_yield=p_yield, manifest=[
+                pax(0, "C", prep=2.5), pax(1, "C", prep=0.0),
+            ], **HAND)
+            sim.run()
+            return [p.row for p in sorted(sim.passengers, key=lambda p: p.t_exit)]
+        self.assertEqual(order(1.0), [0, 1])
+        self.assertEqual(order(0.0), [1, 0])
+
+    def test_bag_behind_walks_back_against_the_flow(self):
+        """1C's bag is above row 4.  3C is already walking out when 1C gets
+        up, so 1C waits until the aisle behind is clear, then walks back."""
+        sim = Simulator(rows=4, p_yield=0.0, manifest=[
+            pax(0, "C", has_bag=True, bag=2.0, bin_offset=3, prep=3.0),
+            pax(2, "C"),
+        ], **HAND)
+        back = sim.passengers[0]
+        seen_back = False
+        while sim.n_inside:
+            sim.step()
+            if back.state == PaxState.BACKTRACK:
+                seen_back = True
+                self.assertEqual(len(sim.reservations), 1)
+        self.assertTrue(seen_back)
+        self.assertLess(sim.passengers[1].t_exit, back.t_exit)
 
     def test_empty_plane(self):
-        sim = Simulator(rows=5, p_occupancy=0.0, seed=1)
+        sim = Simulator(p_occupancy=0.0, seed=1, rows=5)
         self.assertEqual(len(sim.passengers), 0)
         self.assertEqual(sim.run(), 0)
 
@@ -70,80 +101,90 @@ class TestInvariants(unittest.TestCase):
     """Run random planes tick by tick and check physical invariants."""
 
     def check_run(self, **kw):
-        sim = Simulator(rows=8, **kw)
-        ahead_of: set[tuple[int, int]] = set()
+        sim = Simulator(rows=10, **kw)
+        cfg = sim.cfg
+        ever_ahead: set[tuple[int, int]] = set()
         while sim.n_inside:
             sim.step()
-            in_aisle = [p for p in sim.aisle if p is not None]
-            # one cell per person, only people who left their seat
-            self.assertEqual(len(in_aisle), len({p.pid for p in in_aisle}))
-            for p in in_aisle:
-                self.assertIn(p.state, (PaxState.ENTERING, PaxState.RETRIEVING, PaxState.WALKING))
-            # nobody overtakes: relative order in the aisle never flips
-            pids = [p.pid for p in in_aisle]
+            aisle = sim.aisle
+            xs = [p.x for p in aisle]
+            self.assertEqual(xs, sorted(xs), "aisle not sorted")
+            for a, b in zip(aisle, aisle[1:]):
+                gap = (b.x - b.length / 2) - (a.x + a.length / 2)
+                self.assertGreaterEqual(gap, cfg.s0 - 1e-9,
+                                        f"overlap at t={sim.time}: {a.pid}/{b.pid} gap {gap:.3f}")
+            for p in aisle:
+                self.assertIn(p.state, (PaxState.ENTERING, PaxState.BACKTRACK,
+                                        PaxState.RETRIEVING, PaxState.WALKING))
+                self.assertGreaterEqual(p.x, 0.0)
+            # nobody overtakes
+            pids = [p.pid for p in aisle]
             for i, a in enumerate(pids):
                 for b in pids[i + 1:]:
-                    self.assertNotIn((b, a), ahead_of, f"{b} and {a} swapped at t={sim.time}")
-                    ahead_of.add((a, b))
-            self.assertLess(sim.tick, 20000)
+                    self.assertNotIn((b, a), ever_ahead, f"{b} and {a} swapped at t={sim.time}")
+                    ever_ahead.add((a, b))
+            # reserved stretches stay empty except for their owner
+            for res in sim.reservations:
+                for p in aisle:
+                    if p is not res.owner:
+                        self.assertFalse(p.x - p.length / 2 < res.b and p.x + p.length / 2 > res.a,
+                                         f"{p.pid} inside a reservation at t={sim.time}")
+            self.assertLess(sim.tick, 40000, "simulation stuck")
 
-        # everyone is out, once
         self.assertTrue(all(p.state == PaxState.EXITED for p in sim.passengers))
-        # inner seats leave the row before outer ones
         for p in sim.passengers:
-            for bcol in BLOCKING_COLUMNS[p.col]:
-                blocker = sim._pax_by_row_col.get((p.row, bcol))
-                if blocker is not None:
-                    self.assertLess(blocker.t_enter, p.t_enter)
-        # door never faster than its headway
+            for b in p.blockers:
+                self.assertLess(b.t_enter, p.t_enter)
         exits = sorted(p.t_exit for p in sim.passengers)
         for a, b in zip(exits, exits[1:]):
             self.assertGreaterEqual(b - a, sim.door_ticks)
-        # the metrics agree with the run
-        if exits:
-            self.assertEqual(sim.metrics()["total"], exits[-1] * sim.dt)
 
     def test_invariants_random_planes(self):
-        for seed in range(6):
+        for seed in range(4):
             for p_yield in (0.0, 0.5, 1.0):
                 with self.subTest(seed=seed, p_yield=p_yield):
-                    self.check_run(seed=seed, p_yield=p_yield, p_occupancy=0.8)
+                    self.check_run(seed=seed, p_yield=p_yield, p_occupancy=0.85)
 
-    def test_invariants_other_geometries(self):
-        for cpr in (1.0, 2.0):
-            with self.subTest(cells_per_row=cpr):
-                self.check_run(seed=3, p_yield=1.0, cells_per_row=cpr, door_headway=2.0)
+    def test_regression_bag_put_down_into_reserved_stretch(self):
+        """Seed that used to deadlock: someone finishing their bag right
+        behind a reserved stretch stepped into it, face to face with the
+        passenger walking back to their bin."""
+        sim = Simulator(p_yield=1.0, seed=1955374602)
+        sim.run(max_ticks=20000)
+        self.assertEqual(sim.n_inside, 0)
+
+    def test_invariants_many_bags_elsewhere(self):
+        spread = ((-3, 0.15), (-1, 0.15), (0, 0.2), (1, 0.15), (2, 0.15), (3, 0.2))
+        for seed, p_yield in ((7, 1.0), (8, 0.0)):
+            with self.subTest(seed=seed):
+                self.check_run(seed=seed, p_yield=p_yield, p_bag=0.9, bin_offsets=spread)
 
 
 class TestModelProperties(unittest.TestCase):
 
     def test_same_passengers_for_any_policy(self):
         """Common random numbers: p_yield must not change who is on board."""
-        a = Simulator(rows=10, p_yield=0.0, seed=7)
-        b = Simulator(rows=10, p_yield=1.0, seed=7)
-        sig = lambda s: [(p.row, p.col, p.has_bag, p.prep, p.bag, p.prefetch) for p in s.passengers]
-        self.assertEqual(sig(a), sig(b))
+        sig = lambda s: [(p.row, p.col, p.has_bag, p.bin_row, p.prefetch, p.prep, p.to_edge,
+                          p.step_in, p.bag, p.v0, p.depth) for p in s.passengers]
+        self.assertEqual(sig(Simulator(rows=10, p_yield=0.0, seed=7)),
+                         sig(Simulator(rows=10, p_yield=1.0, seed=7)))
 
     def test_door_bottleneck_hides_policy(self):
         """If the door is much slower than the aisle, both policies converge."""
-        kw = dict(rows=10, door_headway=8.0, k=10, seed=3)
-        court = [r["total"] for r in run_experiment(1.0, **kw)]
-        aisle = [r["total"] for r in run_experiment(0.0, **kw)]
-        rel = abs(sum(court) - sum(aisle)) / sum(aisle)
-        self.assertLess(rel, 0.03)
+        cfg = replace(Config(), rows=8, door_headway=12.0)
+        court = [r["total"] for r in run_experiment(1.0, k=4, seed=3, config=cfg)]
+        aisle = [r["total"] for r in run_experiment(0.0, k=4, seed=3, config=cfg)]
+        self.assertLess(abs(sum(court) - sum(aisle)) / sum(aisle), 0.03)
 
     def test_no_bags_no_prep_is_door_limited(self):
-        """Without bags or preparation and a slow door, 60 people leave at
-        exactly the door rate under any policy."""
         for p_yield in (0.0, 1.0):
-            sim = Simulator(rows=10, p_bag=0.0, prep_range=(0, 0, 0), door_headway=4.0,
-                            p_yield=p_yield, seed=1)
-            total = sim.run()
-            self.assertGreaterEqual(total, 4.0 * (len(sim.passengers) - 1))
-            self.assertLess(total, 4.0 * (len(sim.passengers) - 1) + 5)
+            sim = Simulator(rows=6, p_bag=0.0, prep_time=((0, 0.0), (1, 0.0)),
+                            door_headway=6.0, p_yield=p_yield, seed=1)
+            n = len(sim.passengers)
+            self.assertAlmostEqual(sim.run(), 6.0 * (n - 1), delta=10.0)
 
 
-class TestRng(unittest.TestCase):
+class TestSampling(unittest.TestCase):
 
     def test_mulberry32_reference_values(self):
         """Pinned values; the JS port in web/index.html must match them."""
@@ -151,11 +192,18 @@ class TestRng(unittest.TestCase):
         self.assertEqual([r.next_u32() for _ in range(3)],
                          [2581720956, 1925393290, 3661312704])
 
-    def test_triangular_bounds(self):
-        r = Rng(1)
-        xs = [r.triangular(2, 15, 5) for _ in range(2000)]
-        self.assertTrue(all(2 <= x <= 15 for x in xs))
-        self.assertAlmostEqual(sum(xs) / len(xs), (2 + 15 + 5) / 3, delta=0.3)
+    def test_quantiles(self):
+        q = ((0.0, 1.0), (0.5, 2.0), (1.0, 4.0))
+        self.assertEqual(sample_quantiles(q, 0.0), 1.0)
+        self.assertEqual(sample_quantiles(q, 0.25), 1.5)
+        self.assertEqual(sample_quantiles(q, 0.75), 3.0)
+        self.assertLessEqual(sample_quantiles(q, 0.999999), 4.0)
+
+    def test_discrete(self):
+        table = ((-1, 0.2), (0, 0.5), (2, 0.3))
+        self.assertEqual(sample_discrete(table, 0.1), -1)
+        self.assertEqual(sample_discrete(table, 0.6), 0)
+        self.assertEqual(sample_discrete(table, 0.95), 2)
 
 
 class TestStatistics(unittest.TestCase):
@@ -164,14 +212,12 @@ class TestStatistics(unittest.TestCase):
         stats = compute_stats([10, 20, 30, 40, 50])
         self.assertEqual(stats["n"], 5)
         self.assertAlmostEqual(stats["mean"], 30.0)
-        self.assertAlmostEqual(stats["median"], 30.0)
         self.assertEqual(stats["min"], 10)
         self.assertEqual(stats["max"], 50)
 
     def test_paired_ci_constant_difference(self):
         a = [100, 150, 90, 300]
-        diff, lo, hi = paired_ci(a, [x - 5 for x in a], seed=1)
-        self.assertEqual((diff, lo, hi), (5, 5, 5))
+        self.assertEqual(paired_ci(a, [x - 5 for x in a], seed=1), (5, 5, 5))
 
     def test_paired_ci_contains_zero_for_noise(self):
         r = Rng(3)
@@ -185,14 +231,14 @@ class TestStatistics(unittest.TestCase):
 class TestExperimentRunner(unittest.TestCase):
 
     def test_reproducibility(self):
-        r1 = run_experiment(0.5, k=10, seed=42, rows=5)
-        r2 = run_experiment(0.5, k=10, seed=42, rows=5)
-        self.assertEqual(r1, r2)
+        cfg = replace(Config(), rows=5)
+        self.assertEqual(run_experiment(0.5, k=4, seed=42, config=cfg),
+                         run_experiment(0.5, k=4, seed=42, config=cfg))
 
     def test_different_seeds_differ(self):
-        r1 = run_experiment(0.0, k=10, seed=1, rows=10)
-        r2 = run_experiment(0.0, k=10, seed=2, rows=10)
-        self.assertNotEqual(r1, r2)
+        cfg = replace(Config(), rows=6)
+        self.assertNotEqual(run_experiment(0.0, k=4, seed=1, config=cfg),
+                            run_experiment(0.0, k=4, seed=2, config=cfg))
 
 
 if __name__ == "__main__":

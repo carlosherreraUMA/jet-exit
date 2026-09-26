@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
-Refresh the data embedded in web/index.html from the Python simulator.
+Write web/data.js from the Python simulator, so the web pages never carry
+their own copy of the model's numbers:
 
-  PARITY       reference runs the page re-simulates to prove its JS port is
-               bit-identical (total ticks + a checksum of every exit tick).
-  SENSITIVITY  the one-at-a-time sensitivity rows from a `sweep --csv` run.
+  DEFAULT_CONFIG  every parameter of Config (the single source of truth).
+  PARITY          reference runs the JS port must reproduce bit for bit
+                  (total ticks + a checksum of every exit tick).
+  SENSITIVITY     one-at-a-time sensitivity rows from a `sweep --csv` run
+                  (kept from the previous data.js when no CSV is given).
 
 Usage:
-  python simulate_deboarding.py sweep --k 200 --seed 1 --csv sweep.csv
+  node sweep.js --k 100 --seed 1 --csv sweep.csv     # or: python simulate_deboarding.py sweep ...
   python export_parity.py --sweep-csv sweep.csv
 """
 
@@ -19,30 +22,39 @@ import json
 import re
 from pathlib import Path
 
-from simulate_deboarding import Simulator
+from simulate_deboarding import Config, Simulator, config_to_dict
 
-PAGE = Path(__file__).parent / "web" / "index.html"
+DATA = Path(__file__).parent / "web" / "data.js"
+
+SPREAD_BINS = [[-3, 0.1], [-2, 0.1], [-1, 0.1], [0, 0.3], [1, 0.1], [2, 0.15], [3, 0.15]]
 
 CASES = [
-    dict(seed=1, p_yield=1.0),
-    dict(seed=1, p_yield=0.0),
-    dict(seed=2, p_yield=0.5),
-    dict(seed=3, p_yield=0.25, rows=12, cells_per_row=1.0, door_headway=2.0, p_prefetch=0.0),
-    dict(seed=4, p_yield=0.75, rows=20, p_occupancy=0.7, p_bag=0.9, cells_per_row=2.0),
-    dict(seed=5, p_yield=1.0, rows=8, dt=1.0, gap_cells=3, front_cells=1),
-    dict(seed=4294967295, p_yield=0.1, rows=15, prep_range=[0, 20, 8], bag_range=[1, 30, 4]),
+    dict(seed=1, overrides=dict(p_yield=1.0)),
+    dict(seed=1, overrides=dict(p_yield=0.0)),
+    dict(seed=2, overrides=dict(p_yield=0.5, rows=12)),
+    dict(seed=3, overrides=dict(p_yield=0.25, rows=10, p_bag=0.9, bin_offsets=SPREAD_BINS)),
+    dict(seed=4, overrides=dict(p_yield=1.0, rows=8, p_occupancy=0.7, door_headway=2.0,
+                                dt=0.5, p_prefetch=0.0)),
+    dict(seed=4294967295, overrides=dict(p_yield=0.75, rows=10, gap_distance=0.5,
+                                         bag_length=0.4, bin_offsets=SPREAD_BINS)),
 ]
+
+
+def checksum(sim: Simulator) -> int:
+    total = 0
+    for p in sim.passengers:
+        total = (total + (p.pid + 1) * p.t_exit) % 2147483647
+    return total
 
 
 def parity_cases() -> list[dict]:
     out = []
-    for kw in CASES:
-        sim = Simulator(**kw)
+    for case in CASES:
+        kw = {k: (tuple(tuple(x) for x in v) if isinstance(v, list) else v)
+              for k, v in case["overrides"].items()}
+        sim = Simulator(Config(), seed=case["seed"], **kw)
         sim.run()
-        checksum = 0
-        for p in sim.passengers:
-            checksum = (checksum + (p.pid + 1) * p.t_exit) % 2147483647
-        out.append({"kwargs": kw, "ticks": sim.tick, "checksum": checksum, "n": len(sim.passengers)})
+        out.append({**case, "ticks": sim.tick, "checksum": checksum(sim), "n": len(sim.passengers)})
     return out
 
 
@@ -55,22 +67,19 @@ def sensitivity_rows(path: str) -> list[dict]:
             courtesy = float(r["mean_total"])
             diff = float(r["diff"])
             rows.append({
-                "param": r["sweep"],
-                "value": float(r["value"]),
-                "courtesy": round(courtesy, 2),
-                "aisle": round(courtesy - diff, 2),
-                "diff": round(diff, 2),
-                "lo": round(float(r["ci_lo"]), 2),
+                "param": r["sweep"], "value": float(r["value"]),
+                "courtesy": round(courtesy, 2), "aisle": round(courtesy - diff, 2),
+                "diff": round(diff, 2), "lo": round(float(r["ci_lo"]), 2),
                 "hi": round(float(r["ci_hi"]), 2),
             })
     return rows
 
 
-def replace_block(html: str, name: str, value) -> str:
-    pattern = re.compile(rf"/\*{name}\*/.*?/\*END_{name}\*/", re.S)
-    if not pattern.search(html):
-        raise SystemExit(f"marker /*{name}*/ not found in {PAGE}")
-    return pattern.sub(lambda _: f"/*{name}*/{json.dumps(value)}/*END_{name}*/", html)
+def previous_sensitivity() -> list:
+    if not DATA.exists():
+        return []
+    m = re.search(r"const SENSITIVITY = (.*);\n", DATA.read_text())
+    return json.loads(m.group(1)) if m else []
 
 
 def main():
@@ -78,12 +87,16 @@ def main():
     parser.add_argument("--sweep-csv", help="CSV written by `simulate_deboarding.py sweep --csv`")
     args = parser.parse_args()
 
-    html = PAGE.read_text()
-    html = replace_block(html, "PARITY", parity_cases())
-    if args.sweep_csv:
-        html = replace_block(html, "SENSITIVITY", sensitivity_rows(args.sweep_csv))
-    PAGE.write_text(html)
-    print(f"Updated {PAGE}")
+    sens = sensitivity_rows(args.sweep_csv) if args.sweep_csv else previous_sensitivity()
+    DATA.write_text(
+        "// Generated by export_parity.py from simulate_deboarding.py -- do not edit.\n"
+        f"const DEFAULT_CONFIG = {json.dumps(config_to_dict(Config()))};\n"
+        f"const PARITY = {json.dumps(parity_cases())};\n"
+        f"const SENSITIVITY = {json.dumps(sens)};\n"
+        "if (typeof module !== \"undefined\" && module.exports) "
+        "module.exports = { DEFAULT_CONFIG, PARITY, SENSITIVITY };\n"
+    )
+    print(f"Updated {DATA}")
 
 
 if __name__ == "__main__":

@@ -14,13 +14,13 @@
     --line-2: #e6eaef;
     --accent: #1f3a68;
     --accent-ink: #ffffff;
-    --seat: #c7d0dc;
-    --seat-line: #aab5c3;
+    --seat: #d3dae4;
     --preparing: #8d99aa;
     --waiting: #1baf7a;
     --entering: #eda100;
     --bag: #e87ba4;
     --walking: #4a3aa7;
+    --luggage: #5b6576;
     --courtesy: #eb6834;
     --priority: #2a78d6;
     --focus: #2a78d6;
@@ -41,13 +41,13 @@
       --line-2: #232c38;
       --accent: #9db8e8;
       --accent-ink: #0f141b;
-      --seat: #334051;
-      --seat-line: #435266;
+      --seat: #2c3746;
       --preparing: #7d8898;
       --waiting: #199e70;
       --entering: #c98500;
       --bag: #d55181;
       --walking: #9085e9;
+      --luggage: #a3adbb;
       --courtesy: #d95926;
       --priority: #3987e5;
       --focus: #3987e5;
@@ -65,13 +65,13 @@
     --line-2: #232c38;
     --accent: #9db8e8;
     --accent-ink: #0f141b;
-    --seat: #334051;
-    --seat-line: #435266;
+    --seat: #2c3746;
     --preparing: #7d8898;
     --waiting: #199e70;
     --entering: #c98500;
     --bag: #d55181;
     --walking: #9085e9;
+    --luggage: #a3adbb;
     --courtesy: #d95926;
     --priority: #3987e5;
     --focus: #3987e5;
@@ -87,7 +87,7 @@
     padding-inline: 16px;
     padding-block: 28px 56px;
   }
-  .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  .wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
   h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.05; text-wrap: balance; margin: 0; }
   h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); letter-spacing: -0.01em; }
   h2 { font-size: 1.75rem; }
@@ -97,21 +97,17 @@
     font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em;
     text-transform: uppercase; color: var(--muted);
   }
-  .lede { max-width: 68ch; color: var(--ink-2); font-size: 1.05rem; }
+  .lede { max-width: 70ch; color: var(--ink-2); font-size: 1.05rem; }
   .lede strong { color: var(--ink); font-weight: 600; }
   header { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
   .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
   section { display: flex; flex-direction: column; gap: 14px; }
   .section-head { display: flex; flex-direction: column; gap: 4px; }
-  .section-head p { color: var(--ink-2); max-width: 70ch; }
+  .section-head p { color: var(--ink-2); max-width: 72ch; }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+  .sub { color: var(--muted); font-size: 0.85rem; }
 
-  .panel {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-    padding: 16px;
-  }
-
-  /* toolbar */
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   button, select, input[type="number"] {
     font: inherit; color: var(--ink); background: var(--surface);
@@ -123,34 +119,30 @@
   button.primary:hover { filter: brightness(1.08); }
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .toolbar label { display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 0.9rem; }
-  .toolbar input[type="number"] { width: 110px; font-family: var(--font-mono); }
-  .spacer { flex: 1; }
+  .toolbar input[type="number"] { width: 118px; font-family: var(--font-mono); }
 
-  /* cabins */
-  .cabins { display: flex; flex-direction: column; gap: 12px; }
-  .cabin { display: flex; flex-direction: column; gap: 8px; }
+  .cabins { display: flex; flex-direction: column; gap: 14px; }
+  .cabin { display: flex; flex-direction: column; gap: 6px; }
   .cabin-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
   .cabin-name { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
-  .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
-  .cabin-sub { color: var(--muted); font-size: 0.85rem; }
-  .cabin-stats { display: flex; gap: 18px; margin-left: auto; color: var(--ink-2); font-size: 0.9rem; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; display: inline-block; }
+  .cabin-stats { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-left: auto; color: var(--ink-2); font-size: 0.9rem; align-items: baseline; }
   .cabin-stats b { color: var(--ink); font-weight: 500; }
   .clock { font-family: var(--font-mono); font-size: 1.35rem; color: var(--ink); font-variant-numeric: tabular-nums; }
   .done-chip {
     font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
     border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--ink-2);
   }
-  canvas.cabin-canvas { width: 100%; height: 132px; display: block; }
+  .cabin-scroll { overflow-x: auto; }
+  canvas.cabin-canvas { width: 100%; min-width: 680px; display: block; }
 
   .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; color: var(--ink-2); font-size: 0.85rem; }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
   .legend svg { flex: none; }
 
-  /* two columns */
   .grid-2 { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px; align-items: start; }
-  @media (max-width: 820px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 860px) { .grid-2 { grid-template-columns: minmax(0, 1fr); } }
 
-  /* sliders */
   .params { display: flex; flex-direction: column; gap: 14px; }
   .param { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
   .param label { font-weight: 500; font-size: 0.92rem; }
@@ -158,7 +150,6 @@
   .param input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
   .param small { grid-column: 1 / -1; color: var(--muted); font-size: 0.8rem; line-height: 1.4; }
 
-  /* charts */
   .chart-box { position: relative; }
   .chart-box canvas { width: 100%; display: block; }
   .chart-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--ink-2); margin-bottom: 6px; }
@@ -171,49 +162,42 @@
   .tip b { font-weight: 600; }
   .tip .row { display: flex; align-items: center; gap: 6px; }
 
-  /* Monte Carlo */
   .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 640px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 680px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
   .tile { display: flex; flex-direction: column; gap: 4px; }
   .tile .label { display: flex; align-items: center; gap: 7px; color: var(--ink-2); font-size: 0.88rem; }
   .tile .big { font-family: var(--font-display); font-size: 2.6rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
-  .tile .sub { color: var(--muted); font-size: 0.82rem; }
   .mc-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  .mc-status { color: var(--muted); font-size: 0.88rem; }
   progress { width: 160px; accent-color: var(--accent); }
 
   table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
   th, td { text-align: right; padding: 6px 10px; border-bottom: 1px solid var(--line-2); font-variant-numeric: tabular-nums; }
   th { font-weight: 600; color: var(--ink-2); font-size: 0.8rem; letter-spacing: 0.02em; }
   th:first-child, td:first-child { text-align: left; }
-  td.num, td .num { font-family: var(--font-mono); font-size: 0.85rem; }
+  td.num { font-family: var(--font-mono); font-size: 0.85rem; }
   .table-scroll { overflow-x: auto; }
   details summary { cursor: pointer; color: var(--ink-2); font-size: 0.9rem; }
   details[open] summary { margin-bottom: 8px; }
 
   .notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  @media (max-width: 820px) { .notes { grid-template-columns: minmax(0, 1fr); } }
-  .notes ol, .notes ul { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
+  @media (max-width: 860px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+  .notes ol { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); }
   .notes li strong { color: var(--ink); font-weight: 600; }
   code { font-family: var(--font-mono); font-size: 0.85em; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 4px; padding: 0 4px; }
-  .check { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .check { font-weight: 600; }
   .check.ok { color: var(--waiting); }
   .check.bad { color: var(--courtesy); }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { scroll-behavior: auto !important; }
-  }
 </style>
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">Simulación de desembarque · A320, 30 filas 3-3, puerta L1</p>
+    <p class="eyebrow">Simulación de desembarque · A320, 30 filas 3-3, puerta L1 · vista cenital a escala</p>
     <h1>¿Quién cede el pasillo?</h1>
     <p class="lede">
       Al aterrizar, quien ya está de pie en el pasillo suele pararse para dejar salir a cada fila.
       La hipótesis: <strong>sería más rápido que el pasillo no se detuviera</strong> y que quienes siguen
-      sentados esperaran un hueco real, aprovechando la espera para preparar sus cosas.
-      Los dos aviones de abajo llevan exactamente los mismos pasajeros; solo cambia esa regla.
+      sentados esperaran un hueco real, aprovechando la espera para sacar sus cosas.
+      Los dos aviones llevan exactamente los mismos pasajeros; solo cambia esa regla.
     </p>
   </header>
 
@@ -224,20 +208,20 @@
       <button id="newplane" type="button">Otro avión</button>
       <label for="speed">Velocidad
         <select id="speed">
+          <option value="2">×2</option>
           <option value="5">×5</option>
-          <option value="10">×10</option>
-          <option value="20" selected>×20</option>
-          <option value="50">×50</option>
+          <option value="15" selected>×15</option>
+          <option value="40">×40</option>
         </select>
       </label>
       <label for="seed">Semilla <input id="seed" type="number" min="0" max="4294967295" step="1" value="1"></label>
     </div>
 
     <div class="panel cabins">
-      <div class="cabin" id="cabin-a">
+      <div class="cabin">
         <div class="cabin-head">
           <div class="cabin-name"><span class="swatch" style="background: var(--courtesy)"></span><span>Cortesía</span></div>
-          <span class="cabin-sub" id="sub-a">el pasillo cede siempre (p_yield = 1)</span>
+          <span class="sub" id="sub-a">el pasillo cede siempre (p_yield = 1)</span>
           <div class="cabin-stats">
             <span class="clock" id="clock-a">0:00</span>
             <span><b class="num" id="out-a">0</b> fuera</span>
@@ -245,12 +229,12 @@
             <span class="done-chip" id="done-a" hidden>Terminado</span>
           </div>
         </div>
-        <canvas class="cabin-canvas" id="canvas-a" aria-label="Cabina con política de cortesía"></canvas>
+        <div class="cabin-scroll"><canvas class="cabin-canvas" id="canvas-a" aria-label="Cabina con política de cortesía"></canvas></div>
       </div>
-      <div class="cabin" id="cabin-b">
+      <div class="cabin">
         <div class="cabin-head">
           <div class="cabin-name"><span class="swatch" style="background: var(--priority)"></span><span>Pasillo primero</span></div>
-          <span class="cabin-sub">nadie en el pasillo se detiene (p_yield = 0)</span>
+          <span class="sub">nadie en el pasillo se detiene (p_yield = 0)</span>
           <div class="cabin-stats">
             <span class="clock" id="clock-b">0:00</span>
             <span><b class="num" id="out-b">0</b> fuera</span>
@@ -258,15 +242,17 @@
             <span class="done-chip" id="done-b" hidden>Terminado</span>
           </div>
         </div>
-        <canvas class="cabin-canvas" id="canvas-b" aria-label="Cabina con prioridad de pasillo"></canvas>
+        <div class="cabin-scroll"><canvas class="cabin-canvas" id="canvas-b" aria-label="Cabina con prioridad de pasillo"></canvas></div>
       </div>
       <div class="legend" aria-label="Leyenda">
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="3" fill="var(--preparing)"/></svg>Sentado, preparándose</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="3" fill="var(--seat)"/><circle cx="7" cy="7" r="4" fill="var(--waiting)"/></svg>Listo, quiere salir</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--entering)"/></svg>Saliendo al pasillo</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1.5" fill="var(--bag)"/></svg>Cogiendo la maleta (bloquea)</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--walking)"/></svg>Caminando hacia la puerta</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="var(--walking)"/><circle cx="7" cy="7" r="6" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Parado para ceder el paso</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--preparing)"/></svg>Sentado, preparándose</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--waiting)" stroke-width="2"/></svg>Listo, esperando a su fila</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--waiting)"/></svg>De pie, quiere salir al pasillo</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--entering)"/></svg>Entrando al pasillo</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1.5" fill="var(--bag)"/></svg>Sacando la maleta (bloquea)</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--bag)" stroke-width="2"/></svg>Vuelve atrás a por su maleta</span>
+        <span><svg width="18" height="14" viewBox="0 0 18 14"><ellipse cx="6" cy="7" rx="5" ry="5" fill="var(--walking)"/><rect x="11.5" y="4" width="5" height="6" rx="1" fill="var(--luggage)"/></svg>Caminando (con maleta)</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="var(--walking)"/><circle cx="7" cy="7" r="6" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Parado para dejar salir a una fila</span>
       </div>
     </div>
   </section>
@@ -275,34 +261,39 @@
     <section class="panel" aria-labelledby="params-title">
       <div class="section-head">
         <h3 id="params-title">Parámetros del vuelo</h3>
-        <p class="cabin-sub">Al cambiar cualquiera, los dos aviones se regeneran con los mismos pasajeros y el Monte Carlo se recalcula.</p>
+        <p class="sub">Al cambiar cualquiera, los dos aviones se regeneran con los mismos pasajeros y el Monte Carlo se recalcula.</p>
       </div>
       <div class="params">
         <div class="param">
-          <label for="p_yield">Cortesía del avión de arriba</label><output id="p_yield-out" for="p_yield">1,00</output>
+          <label for="p_yield">Cortesía del avión de arriba</label><output id="p_yield-out" for="p_yield"></output>
           <input id="p_yield" type="range" min="0" max="1" step="0.05" value="1">
-          <small>Probabilidad de que alguien que camina por el pasillo se pare a dejar salir a una fila.</small>
+          <small>Probabilidad de que quien camina por el pasillo se pare a dejar salir a una fila.</small>
         </div>
         <div class="param">
-          <label for="rows">Filas</label><output id="rows-out" for="rows">30</output>
+          <label for="rows">Filas</label><output id="rows-out" for="rows"></output>
           <input id="rows" type="range" min="6" max="40" step="1" value="30">
         </div>
         <div class="param">
-          <label for="p_occupancy">Ocupación</label><output id="p_occupancy-out" for="p_occupancy">100 %</output>
+          <label for="p_occupancy">Ocupación</label><output id="p_occupancy-out" for="p_occupancy"></output>
           <input id="p_occupancy" type="range" min="0.4" max="1" step="0.05" value="1">
         </div>
         <div class="param">
-          <label for="p_bag">Llevan maleta en el compartimento</label><output id="p_bag-out" for="p_bag">65 %</output>
+          <label for="p_bag">Llevan maleta en el compartimento</label><output id="p_bag-out" for="p_bag"></output>
           <input id="p_bag" type="range" min="0" max="1" step="0.05" value="0.65">
-          <small>Coger la maleta cuesta entre 2 y 15 s (lo más frecuente, 5 s).</small>
+          <small>Sacarla cuesta entre 1,5 y 30 s; la mitad tarda menos de 7,3 s.</small>
         </div>
         <div class="param">
-          <label for="p_prefetch">Pueden cogerla de pie junto al asiento</label><output id="p_prefetch-out" for="p_prefetch">80 %</output>
+          <label for="p_prefetch">La sacan de pie en su fila, si la alcanzan</label><output id="p_prefetch-out" for="p_prefetch"></output>
           <input id="p_prefetch" type="range" min="0" max="1" step="0.05" value="0.8">
-          <small>Los demás tienen que cogerla ya en el pasillo, bloqueándolo. Con 80 %, la cortesía da los 9-12 min que se miden en la realidad.</small>
+          <small>Los demás la sacan ya en el pasillo, bloqueándolo.</small>
         </div>
         <div class="param">
-          <label for="door_headway">Puerta: segundos entre pasajeros</label><output id="door_headway-out" for="door_headway">1,0 s</output>
+          <label for="bins_elsewhere">Maletas guardadas lejos de su fila</label><output id="bins_elsewhere-out" for="bins_elsewhere"></output>
+          <input id="bins_elsewhere" type="range" min="0" max="0.6" step="0.02" value="0.28">
+          <small>Si está detrás y fuera de su alcance, esperan a que se vacíe el pasillo y van contra la corriente.</small>
+        </div>
+        <div class="param">
+          <label for="door_headway">Puerta: segundos entre pasajeros</label><output id="door_headway-out" for="door_headway"></output>
           <input id="door_headway" type="range" min="0.5" max="4" step="0.5" value="1">
           <small>Si la puerta es el cuello de botella, la regla del pasillo deja de importar.</small>
         </div>
@@ -312,14 +303,14 @@
     <section class="panel" aria-labelledby="exits-title">
       <div class="section-head">
         <h3 id="exits-title">Pasajeros fuera del avión</h3>
-        <p class="cabin-sub">Acumulado frente al tiempo, en este avión concreto.</p>
+        <p class="sub">Acumulado frente al tiempo, en este avión concreto.</p>
       </div>
       <div class="chart-legend">
         <span><span class="swatch" style="background: var(--courtesy)"></span>Cortesía</span>
         <span><span class="swatch" style="background: var(--priority)"></span>Pasillo primero</span>
       </div>
       <div class="chart-box" id="exits-box">
-        <canvas id="exits-chart" height="280" aria-label="Pasajeros fuera frente al tiempo"></canvas>
+        <canvas id="exits-chart" aria-label="Pasajeros fuera frente al tiempo"></canvas>
         <div class="tip" id="exits-tip" hidden></div>
       </div>
     </section>
@@ -328,18 +319,18 @@
   <section aria-labelledby="mc-title">
     <div class="section-head">
       <h2 id="mc-title">Muchos aviones, no solo uno</h2>
-      <p>Un avión puede salir bien o mal por casualidad. Aquí se simulan <span id="mc-k-label">100</span> aviones distintos con los parámetros de arriba, cada uno con las dos reglas y con grados intermedios de cortesía. Las diferencias son emparejadas: se comparan los mismos pasajeros.</p>
+      <p>Un avión puede salir bien o mal por casualidad. Aquí se simulan <span id="mc-k-label">40</span> aviones distintos con los parámetros de arriba, con las dos reglas y con grados intermedios de cortesía. Las diferencias son emparejadas: se comparan los mismos pasajeros.</p>
     </div>
     <div class="mc-bar">
-      <label for="mc-k" class="cabin-sub">Aviones por punto</label>
+      <label for="mc-k" class="sub">Aviones por punto</label>
       <select id="mc-k">
-        <option value="50">50</option>
-        <option value="100" selected>100</option>
-        <option value="200">200</option>
+        <option value="20">20</option>
+        <option value="40" selected>40</option>
+        <option value="100">100</option>
       </select>
       <button id="mc-run" type="button">Recalcular</button>
       <progress id="mc-progress" max="1" value="0"></progress>
-      <span class="mc-status" id="mc-status">Calculando…</span>
+      <span class="sub" id="mc-status">Calculando…</span>
     </div>
     <div class="tiles">
       <div class="panel tile">
@@ -361,10 +352,10 @@
     <div class="panel">
       <div class="section-head">
         <h3>Tiempo total según el grado de cortesía</h3>
-        <p class="cabin-sub">Media de todos los aviones, con intervalo de confianza del 95 %. Basta con un poco de cortesía para perder casi toda la ventaja.</p>
+        <p class="sub">Media de todos los aviones, con intervalo de confianza del 95 %.</p>
       </div>
       <div class="chart-box" id="curve-box">
-        <canvas id="curve-chart" height="260" aria-label="Tiempo total frente a probabilidad de ceder el paso"></canvas>
+        <canvas id="curve-chart" aria-label="Tiempo total frente a probabilidad de ceder el paso"></canvas>
         <div class="tip" id="curve-tip" hidden></div>
       </div>
       <details>
@@ -382,7 +373,7 @@
   <section aria-labelledby="sens-title">
     <div class="section-head">
       <h2 id="sens-title">¿Cuándo deja de cumplirse?</h2>
-      <p>Barrido hecho con el simulador en Python (<code>simulate_deboarding.py sweep --k 200 --seed 1</code>): se cambia un parámetro cada vez, dejando el resto en sus valores por defecto. La columna de la derecha es cuánto más tarda la cortesía que el pasillo primero.</p>
+      <p>Barrido con 100 aviones por valor (<code>node sweep.js</code>, el mismo modelo que esta página y que el simulador en Python): se cambia un parámetro cada vez y el resto se queda en sus valores por defecto. La última columna es cuánto más tarda la cortesía que el pasillo primero.</p>
     </div>
     <div class="panel table-scroll">
       <table>
@@ -395,21 +386,22 @@
   <section aria-labelledby="model-title">
     <div class="section-head">
       <h2 id="model-title">Cómo está hecho el modelo</h2>
+      <p>Cada número es un parámetro con su fuente; los que aún no tienen datos son estimaciones a la espera de mediciones en vídeo (ver <code>DATA.md</code>).</p>
     </div>
     <div class="notes">
       <div class="panel">
         <ol>
-          <li><strong>Pasillo en celdas.</strong> 1,5 celdas por fila (unos 0,5 m cada una); una persona por celda. Cada paso de simulación son 0,5 s y se avanza como mucho una celda por paso (unos 0,76 m/s).</li>
-          <li><strong>Sentados.</strong> Todos empiezan a prepararse a la vez (cinturón, abrigo, bolsa de debajo del asiento): entre 0 y 10 s. Sale primero el de pasillo, luego el del medio y por último el de ventanilla.</li>
-          <li><strong>Maletas.</strong> El 65 % lleva maleta arriba. Si la pueden coger de pie junto al asiento, lo hacen mientras esperan; si no, la cogen en el pasillo y bloquean a los de detrás.</li>
-          <li><strong>Reacción.</strong> Quien está parado tarda un paso en arrancar, así que una cola detenida se pone en marcha en ola.</li>
+          <li><strong>Pasillo continuo.</strong> Cada persona tiene su profundidad de cuerpo (28-45 cm), su velocidad libre (0,5-1,1 m/s; mediana 0,8 m/s, medida por Schultz) y aceleración limitada. Guarda 15 cm con quien tiene delante y 0,6 s de distancia en marcha; si está parada, espera a tener 25 cm más de hueco antes de arrancar, así que las colas se ponen en marcha en ola.</li>
+          <li><strong>Dentro de la fila.</strong> Todos se preparan sentados a la vez (0-10 s). Sale primero el de pasillo; los demás se levantan y se desplazan de lado cuando queda sitio.</li>
+          <li><strong>Maletas.</strong> El 65 % lleva maleta arriba. Si la alcanzan desde su fila, el 80 % la saca mientras espera; si no, la sacan en el pasillo y bloquean. Con la maleta en la mano ocupan 25 cm más y van un 15 % más lentos.</li>
+          <li><strong>Compartimentos.</strong> El 28 % de las maletas no está encima de su fila. Si está delante, se paran a cogerla al pasar; si está detrás y fuera de alcance, esperan a que el pasillo hasta ella esté vacío, lo reservan y van contra la corriente.</li>
         </ol>
       </div>
       <div class="panel">
         <ol start="5">
-          <li><strong>La regla que se compara.</strong> Al llegar a una fila con alguien esperando, el que camina decide una vez si se para a cederle el paso (probabilidad p_yield).</li>
-          <li><strong>Huecos.</strong> Con cualquier regla, un sentado puede entrar si la celda está libre y no viene nadie caminando en las dos celdas de detrás.</li>
-          <li><strong>Puerta.</strong> Sale como mucho una persona por segundo (ajustable).</li>
+          <li><strong>La regla que se compara.</strong> Al acercarse a una fila donde alguien se está levantando, quien camina decide una vez si se para a dejarla salir entera (probabilidad p_yield).</li>
+          <li><strong>Huecos.</strong> Con cualquier regla, quien está en el borde puede salir sin que le cedan el paso si hay sitio y nadie se acerca a menos de 1 m más 1,5 s por cada m/s de velocidad.</li>
+          <li><strong>Calibración.</strong> Con cortesía, un A320 lleno tarda 12,7 min (14-15 pax/min); lo observado es 15-17 pax/min y entre 6:27 y 13 min con al menos un 80 % de ocupación.</li>
           <li><strong>Mismo código.</strong> Esta página ejecuta un port exacto del simulador en Python, con el mismo generador aleatorio. Comprobación contra Python: <span id="parity">pendiente</span></li>
         </ol>
       </div>
@@ -417,223 +409,10 @@
   </section>
 </div>
 
+<script src="data.js"></script>
+<script src="model.js"></script>
 <script>
-// ===========================================================================
-// Model: exact port of simulate_deboarding.py (keep both in sync;
-// export_parity.py refreshes the reference values below).
-// ===========================================================================
-const PARITY = /*PARITY*/[{"kwargs": {"seed": 1, "p_yield": 1.0}, "ticks": 1337, "checksum": 15146290, "n": 180}, {"kwargs": {"seed": 1, "p_yield": 0.0}, "ticks": 479, "checksum": 4514659, "n": 180}, {"kwargs": {"seed": 2, "p_yield": 0.5}, "ticks": 1186, "checksum": 13101277, "n": 180}, {"kwargs": {"seed": 3, "p_yield": 0.25, "rows": 12, "cells_per_row": 1.0, "door_headway": 2.0, "p_prefetch": 0.0}, "ticks": 810, "checksum": 1455620, "n": 72}, {"kwargs": {"seed": 4, "p_yield": 0.75, "rows": 20, "p_occupancy": 0.7, "p_bag": 0.9, "cells_per_row": 2.0}, "ticks": 555, "checksum": 1322513, "n": 82}, {"kwargs": {"seed": 5, "p_yield": 1.0, "rows": 8, "dt": 1.0, "gap_cells": 3, "front_cells": 1}, "ticks": 218, "checksum": 173774, "n": 48}, {"kwargs": {"seed": 4294967295, "p_yield": 0.1, "rows": 15, "prep_range": [0, 20, 8], "bag_range": [1, 30, 4]}, "ticks": 721, "checksum": 2098864, "n": 90}]/*END_PARITY*/;
-const SENSITIVITY = /*SENSITIVITY*/[{"param": "p_prefetch", "value": 0.0, "courtesy": 1070.95, "aisle": 256.42, "diff": 814.53, "lo": 808.26, "hi": 820.81}, {"param": "p_prefetch", "value": 0.5, "courtesy": 814.38, "aisle": 241.21, "diff": 573.17, "lo": 568.2, "hi": 578.42}, {"param": "p_prefetch", "value": 0.8, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "p_prefetch", "value": 1.0, "courtesy": 614.47, "aisle": 204.75, "diff": 409.72, "lo": 406.4, "hi": 412.98}, {"param": "p_bag", "value": 0.2, "courtesy": 513.6, "aisle": 204.18, "diff": 309.42, "lo": 306.21, "hi": 312.72}, {"param": "p_bag", "value": 0.4, "courtesy": 600.04, "aisle": 214.64, "diff": 385.39, "lo": 382.1, "hi": 388.88}, {"param": "p_bag", "value": 0.65, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "p_bag", "value": 0.9, "courtesy": 762.58, "aisle": 232.06, "diff": 530.52, "lo": 526.97, "hi": 534.36}, {"param": "p_occupancy", "value": 0.5, "courtesy": 262.55, "aisle": 121.01, "diff": 141.54, "lo": 137.28, "hi": 145.72}, {"param": "p_occupancy", "value": 0.7, "courtesy": 435.25, "aisle": 164.27, "diff": 270.97, "lo": 266.44, "hi": 275.44}, {"param": "p_occupancy", "value": 0.85, "courtesy": 560.75, "aisle": 193.42, "diff": 367.33, "lo": 362.94, "hi": 371.67}, {"param": "p_occupancy", "value": 1.0, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "door_headway", "value": 1.0, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "door_headway", "value": 1.5, "courtesy": 687.13, "aisle": 292.5, "diff": 394.63, "lo": 390.68, "hi": 398.65}, {"param": "door_headway", "value": 2.0, "courtesy": 687.63, "aisle": 376.49, "diff": 311.15, "lo": 307.08, "hi": 315.29}, {"param": "door_headway", "value": 3.0, "courtesy": 689.35, "aisle": 550.2, "diff": 139.14, "lo": 135.07, "hi": 143.24}, {"param": "bag_mode", "value": 3.0, "courtesy": 661.43, "aisle": 222.45, "diff": 438.98, "lo": 435.19, "hi": 442.63}, {"param": "bag_mode", "value": 5.0, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "bag_mode", "value": 8.0, "courtesy": 725.1, "aisle": 229.44, "diff": 495.66, "lo": 491.4, "hi": 499.86}, {"param": "bag_mode", "value": 12.0, "courtesy": 778.3, "aisle": 237.27, "diff": 541.03, "lo": 536.24, "hi": 545.83}, {"param": "prep_mode", "value": 0.0, "courtesy": 685.72, "aisle": 224.19, "diff": 461.52, "lo": 457.68, "hi": 465.18}, {"param": "prep_mode", "value": 2.0, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "prep_mode", "value": 5.0, "courtesy": 685.08, "aisle": 225.92, "diff": 459.16, "lo": 455.27, "hi": 462.88}, {"param": "prep_mode", "value": 8.0, "courtesy": 685.84, "aisle": 226.51, "diff": 459.33, "lo": 455.62, "hi": 463.06}, {"param": "cells_per_row", "value": 1.0, "courtesy": 730.69, "aisle": 229.0, "diff": 501.69, "lo": 497.67, "hi": 505.78}, {"param": "cells_per_row", "value": 1.5, "courtesy": 686.63, "aisle": 224.86, "diff": 461.78, "lo": 457.86, "hi": 465.71}, {"param": "cells_per_row", "value": 2.0, "courtesy": 638.3, "aisle": 215.61, "diff": 422.69, "lo": 419.01, "hi": 426.49}]/*END_SENSITIVITY*/;
-
-class Rng {
-  constructor(seed) { this.a = seed >>> 0; }
-  nextU32() {
-    this.a = (this.a + 0x6D2B79F5) >>> 0;
-    const a = this.a;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return (t ^ (t >>> 14)) >>> 0;
-  }
-  random() { return this.nextU32() / 4294967296; }
-  triangular(low, high, mode) {
-    let u = this.random();
-    if (high === low) return low;
-    let c = (mode - low) / (high - low);
-    if (u > c) { u = 1 - u; c = 1 - c; [low, high] = [high, low]; }
-    return low + (high - low) * Math.sqrt(u * c);
-  }
-}
-const toTicks = (s) => Math.floor(s + 0.5);
-
-const SEATED = 0, WAITING = 1, ENTERING = 2, RETRIEVING = 3, WALKING = 4, EXITED = 5;
-const COLS = "ABCDEF";
-const DIST = { C: 0, D: 0, B: 1, E: 1, A: 2, F: 2 };
-const BLOCKING = { A: ["B", "C"], B: ["C"], C: [], D: [], E: ["D"], F: ["D", "E"] };
-const LEFT = new Set(["A", "B", "C"]);
-
-const DEFAULTS = {
-  rows: 30, p_occupancy: 1.0, p_bag: 0.65, p_prefetch: 0.8,
-  prep_range: [0, 10, 2], bag_range: [2, 15, 5],
-  enter_base: 1.0, enter_per_seat: 1.0, dt: 0.5, cells_per_row: 1.5, front_cells: 2,
-  door_headway: 1.0, gap_cells: 2, p_yield: 1.0, seed: 0,
-};
-
-class Sim {
-  constructor(opts) {
-    const o = { ...DEFAULTS, ...opts };
-    Object.assign(this, o);
-    this.gen = new Rng(o.seed);
-    this.dyn = new Rng((o.seed ^ 0x9E3779B9) >>> 0);
-    this.tick = 0;
-    this.lastExit = -Infinity;
-    this.doorTicks = Math.max(1, this.ticks(o.door_headway));
-    this.yielders = new Set();
-    this.nCells = o.front_cells + Math.floor(o.rows * o.cells_per_row);
-    this.aisle = new Array(this.nCells).fill(null);
-    this.rowCells = [];
-    this.cellRow = new Array(this.nCells).fill(-1);
-    for (let r = 0; r < o.rows; r++) {
-      const cells = [];
-      const a = o.front_cells + Math.floor(r * o.cells_per_row);
-      const b = o.front_cells + Math.floor((r + 1) * o.cells_per_row);
-      for (let c = a; c < b; c++) { cells.push(c); this.cellRow[c] = r; }
-      this.rowCells.push(cells);
-    }
-    this.pax = [];
-    this.byRC = new Map();
-    this.seatsByRow = Array.from({ length: o.rows }, () => []);
-    this.generate();
-    this.nInside = this.pax.length;
-    this.waitCount = new Int32Array(o.rows);
-    this.startOcc = new Uint8Array(this.nCells);
-  }
-  ticks(seconds) { return toTicks(seconds / this.dt); }
-  generate() {
-    const rng = this.gen;
-    for (let row = 0; row < this.rows; row++) {
-      for (const col of COLS) {
-        if (rng.random() >= this.p_occupancy) continue;
-        const hasBag = rng.random() < this.p_bag;
-        const prep = rng.triangular(...this.prep_range);
-        let bag = 0, prefetch = false;
-        if (hasBag) {
-          bag = rng.triangular(...this.bag_range);
-          prefetch = rng.random() < this.p_prefetch;
-        }
-        const enter = this.enter_base + this.enter_per_seat * DIST[col];
-        const p = {
-          pid: this.pax.length, row, col, hasBag, left: LEFT.has(col),
-          prep: this.ticks(prep), enter: Math.max(1, this.ticks(enter)),
-          bag: hasBag ? Math.max(1, this.ticks(bag)) : 0, prefetch: prefetch && hasBag,
-          state: SEATED, enterLeft: 0, moving: false, yields: new Map(),
-          tReady: -1, tEnter: -1, tExit: -1, prepLeft: 0, bagLeft: 0, blockers: null,
-        };
-        p.prepLeft = p.prep; p.bagLeft = p.bag;
-        this.pax.push(p);
-        this.byRC.set(row * 8 + COLS.indexOf(col), p);
-        this.seatsByRow[row].push(p);
-      }
-    }
-    for (const p of this.pax) {
-      p.blockers = BLOCKING[p.col].map((bc) => this.byRC.get(p.row * 8 + COLS.indexOf(bc))).filter(Boolean);
-    }
-  }
-  blockersCleared(p) {
-    for (const b of p.blockers) {
-      if (b.state !== RETRIEVING && b.state !== WALKING && b.state !== EXITED) return false;
-    }
-    return true;
-  }
-  gapOk(cell) {
-    const last = Math.min(cell + this.gap_cells, this.nCells - 1);
-    for (let j = cell + 1; j <= last; j++) {
-      const q = this.aisle[j];
-      if (q) return q.state !== WALKING || this.yielders.has(q.pid);
-    }
-    return true;
-  }
-  step() {
-    this.tick++;
-    // timers
-    for (const p of this.pax) {
-      const st = p.state;
-      if (st === SEATED) {
-        if (p.prepLeft > 0) p.prepLeft--;
-        if (p.prepLeft === 0 && this.blockersCleared(p)) { p.state = WAITING; p.tReady = this.tick; this.waitCount[p.row]++; }
-      } else if (st === WAITING) {
-        if (p.prefetch && p.bagLeft > 0) p.bagLeft--;
-      } else if (st === ENTERING) {
-        p.enterLeft--;
-        if (p.enterLeft <= 0) p.state = p.bagLeft > 0 ? RETRIEVING : WALKING;
-      } else if (st === RETRIEVING) {
-        p.bagLeft--;
-        if (p.bagLeft <= 0) p.state = WALKING;
-      }
-    }
-    // door
-    const front = this.aisle[0];
-    if (front && front.state === WALKING && this.tick - this.lastExit >= this.doorTicks) {
-      front.state = EXITED; front.tExit = this.tick; front.moving = false;
-      this.aisle[0] = null; this.lastExit = this.tick; this.nInside--;
-    }
-    // move, front to back
-    const startOcc = this.startOcc;
-    for (let i = 0; i < this.nCells; i++) startOcc[i] = this.aisle[i] !== null ? 1 : 0;
-    const offered = new Set();
-    this.yielders.clear();
-    for (let i = 1; i < this.nCells; i++) {
-      const p = this.aisle[i];
-      if (!p) continue;
-      if (p.state !== WALKING || this.aisle[i - 1] !== null) { p.moving = false; continue; }
-      if (startOcc[i - 1] && !p.moving) continue;
-      const r = this.cellRow[i - 1];
-      if (r >= 0 && this.waitCount[r] > 0) {
-        let d = p.yields.get(i - 1);
-        if (d === undefined) { d = this.dyn.random() < this.p_yield; p.yields.set(i - 1, d); }
-        if (d) { offered.add(i - 1); this.yielders.add(p.pid); p.moving = false; continue; }
-      }
-      this.aisle[i - 1] = p; this.aisle[i] = null; p.moving = true;
-    }
-    // enter
-    for (let r = 0; r < this.rows; r++) {
-      for (const c of this.rowCells[r]) {
-        if (this.aisle[c] !== null) continue;
-        if (this.waitCount[r] === 0) break;
-        if (!offered.has(c) && !this.gapOk(c)) continue;
-        const leftFirst = (r + this.tick) % 2 === 0;
-        let chosen = null, ck = 0;
-        for (const p of this.seatsByRow[r]) {
-          if (p.state !== WAITING) continue;
-          const k = p.left !== leftFirst ? 1 : 0;
-          if (chosen === null || p.tReady < chosen.tReady || (p.tReady === chosen.tReady && k < ck)) { chosen = p; ck = k; }
-        }
-        chosen.state = ENTERING; chosen.enterLeft = chosen.enter; chosen.tEnter = this.tick; chosen.moving = false;
-        this.waitCount[r]--;
-        this.aisle[c] = chosen;
-      }
-    }
-    return this.nInside > 0;
-  }
-  get time() { return this.tick * this.dt; }
-  run(maxTicks = 50000) {
-    while (this.nInside > 0 && this.tick < maxTicks) this.step();
-    if (this.nInside > 0) throw new Error("simulation did not finish");
-    return this.time;
-  }
-  metrics() {
-    const ex = this.pax.map((p) => p.tExit * this.dt).sort((a, b) => a - b);
-    if (!ex.length) return { total: 0, mean_exit: 0, p90_exit: 0 };
-    return {
-      total: this.time,
-      mean_exit: ex.reduce((s, x) => s + x, 0) / ex.length,
-      p90_exit: ex[Math.min(ex.length - 1, Math.floor(ex.length * 0.9))],
-    };
-  }
-}
-
-function runSeeds(k, seed) {
-  const base = new Rng(seed);
-  return Array.from({ length: k }, () => base.nextU32());
-}
-function pairedCI(a, b, seed, nBoot = 2000, alpha = 0.05) {
-  const d = a.map((x, i) => x - b[i]);
-  const n = d.length;
-  const obs = d.reduce((s, x) => s + x, 0) / n;
-  if (n < 2) return [obs, obs, obs];
-  const rng = new Rng(seed);
-  const boots = new Array(nBoot);
-  for (let i = 0; i < nBoot; i++) {
-    let s = 0;
-    for (let j = 0; j < n; j++) s += d[Math.floor(rng.random() * n)];
-    boots[i] = s / n;
-  }
-  boots.sort((x, y) => x - y);
-  return [obs, boots[Math.floor(nBoot * alpha / 2)], boots[Math.floor(nBoot * (1 - alpha / 2)) - 1]];
-}
-
-// ===========================================================================
-// Page
-// ===========================================================================
+const { Sim, S, COLS, runSeeds, pairedCI } = window.Deboarding;
 const $ = (id) => document.getElementById(id);
 const fmtTime = (s) => {
   const t = Math.round(s);
@@ -642,11 +421,12 @@ const fmtTime = (s) => {
 const fmtSigned = (s) => (s < 0 ? "−" : "+") + fmtTime(Math.abs(s));
 const fmtNum = (x, d = 0) => x.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
 
+// ---- theme colours ---------------------------------------------------------
 let colors = {};
 function readColors() {
   const cs = getComputedStyle(document.documentElement);
-  for (const name of ["bg", "surface", "surface-2", "ink", "ink-2", "muted", "line", "line-2", "seat", "seat-line",
-    "preparing", "waiting", "entering", "bag", "walking", "courtesy", "priority"]) {
+  for (const name of ["surface", "ink", "ink-2", "muted", "line", "line-2", "seat", "preparing", "waiting",
+    "entering", "bag", "walking", "luggage", "courtesy", "priority"]) {
     colors[name] = cs.getPropertyValue(`--${name}`).trim();
   }
   colors.mono = cs.getPropertyValue("--font-mono").trim();
@@ -656,24 +436,24 @@ function readColors() {
 function setupCanvas(canvas, cssHeight) {
   const dpr = window.devicePixelRatio || 1;
   const w = canvas.clientWidth;
-  const h = cssHeight ?? canvas.clientHeight;
-  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(cssHeight * dpr)) {
     canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    canvas.style.height = h + "px";
+    canvas.height = Math.round(cssHeight * dpr);
+    canvas.style.height = cssHeight + "px";
   }
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return { ctx, w, h };
+  return { ctx, w, h: cssHeight };
 }
 
-// ---- parameters ----------------------------------------------------------
+// ---- parameters ------------------------------------------------------------
 const PARAMS = {
   p_yield: (v) => fmtNum(v, 2),
   rows: (v) => String(v),
   p_occupancy: (v) => `${Math.round(v * 100)} %`,
   p_bag: (v) => `${Math.round(v * 100)} %`,
   p_prefetch: (v) => `${Math.round(v * 100)} %`,
+  bins_elsewhere: (v) => `${Math.round(v * 100)} %`,
   door_headway: (v) => `${fmtNum(v, 1)} s`,
 };
 function readParams() {
@@ -683,22 +463,30 @@ function readParams() {
     out[k] = k === "rows" ? Math.round(v) : v;
     $(`${k}-out`).textContent = PARAMS[k](out[k]);
   }
-  const seed = Math.max(0, Math.min(4294967295, Math.floor(Number($("seed").value) || 0)));
-  return { ...out, seed };
+  out.seed = Math.max(0, Math.min(4294967295, Math.floor(Number($("seed").value) || 0)));
+  return out;
+}
+// Same transformation as `_with_override(..., "bins_elsewhere", v)` in Python.
+function binTable(share) {
+  const base = DEFAULT_CONFIG.bin_offsets;
+  const others = base.filter(([o]) => o !== 0).reduce((s, [, w]) => s + w, 0);
+  return base.map(([o, w]) => [o, o === 0 ? 1 - share : w / others * share]);
+}
+function configFor(p) {
+  return {
+    ...DEFAULT_CONFIG, rows: p.rows, p_occupancy: p.p_occupancy, p_bag: p.p_bag,
+    p_prefetch: p.p_prefetch, door_headway: p.door_headway, bin_offsets: binTable(p.bins_elsewhere),
+  };
 }
 
 // ---- live animation --------------------------------------------------------
-let live = null;
-let playing = true;
-let lastFrame = null;
-let acc = 0;
+let live = null, playing = true, lastFrame = null, acc = 0;
 
 function newLive() {
   const p = readParams();
-  const common = { rows: p.rows, p_occupancy: p.p_occupancy, p_bag: p.p_bag, p_prefetch: p.p_prefetch,
-    door_headway: p.door_headway, seed: p.seed };
-  const a = new Sim({ ...common, p_yield: p.p_yield });
-  const b = new Sim({ ...common, p_yield: 0 });
+  const cfg = configFor(p);
+  const a = new Sim({ ...cfg, p_yield: p.p_yield }, p.seed);
+  const b = new Sim({ ...cfg, p_yield: 0 }, p.seed);
   live = { a, b, histA: [0], histB: [0], n: a.pax.length };
   $("sub-a").textContent = p.p_yield === 1 ? "el pasillo cede siempre (p_yield = 1)"
     : `el pasillo cede con probabilidad ${fmtNum(p.p_yield, 2)}`;
@@ -707,7 +495,10 @@ function newLive() {
 }
 
 function advance(sim, hist) {
-  if (sim.nInside > 0) { sim.step(); hist.push(sim.pax.length - sim.nInside); }
+  if (sim.nInside === 0) return;
+  for (const p of sim.pax) p.px = p.x;
+  sim.step();
+  hist.push(sim.pax.length - sim.nInside);
 }
 
 function frame(ts) {
@@ -728,81 +519,114 @@ function frame(ts) {
   requestAnimationFrame(frame);
 }
 
-function drawCabin(canvas, sim) {
-  const lanes = 7;
-  const { ctx, w, h } = setupCanvas(canvas, 132);
-  ctx.clearRect(0, 0, w, h);
-  const top = 6, laneH = (h - top - 22) / lanes;
-  const x0 = 34, x1 = w - 6;
-  const cellW = (x1 - x0) / sim.nCells;
-  const cpr = sim.cells_per_row;
-  const aisleY = top + laneH * 3.5;
+// Cabin geometry in metres, seen from above: door on the left, A-B-C on top.
+const SEAT_W = 0.46, AISLE_W = 0.5;
+const LANE_Y = { A: 0.23, B: 0.69, C: 1.15, D: 2.11, E: 2.57, F: 3.03 };
+const AISLE_Y = 1.63, CABIN_W = 3.26;
+const EDGE_Y = { left: 1.38 - 0.1, right: 1.88 + 0.1 };
 
-  // fuselage outline
+function drawCabin(canvas, sim) {
+  const cfg = sim.cfg;
+  const x0 = 34, top = 8;
+  const w = canvas.clientWidth;
+  const length = cfg.door_to_row1 + cfg.rows * cfg.seat_pitch + 0.3;
+  const k = (w - x0 - 8) / length;                  // px per metre
+  const h = Math.round(top + CABIN_W * k + 22);
+  const { ctx } = setupCanvas(canvas, h);
+  ctx.clearRect(0, 0, w, h);
+  const X = (m) => x0 + m * k;
+  const Y = (m) => top + m * k;
+  const alpha = playing ? Math.min(1, acc / sim.dt) : 1;
+
+  // fuselage and aisle
   ctx.strokeStyle = colors.line; ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x0 - 4, top - 2, x1 - x0 + 8, laneH * lanes + 4, 6);
-  ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(X(0) - 4, Y(0) - 3, length * k + 4, CABIN_W * k + 6, 8); ctx.stroke();
+  ctx.fillStyle = colors["line-2"];
+  ctx.fillRect(X(0), Y(AISLE_Y - AISLE_W / 2), length * k, AISLE_W * k);
   // door L1
   ctx.fillStyle = colors.ink;
-  ctx.beginPath();
-  ctx.moveTo(6, aisleY); ctx.lineTo(16, aisleY - 6); ctx.lineTo(16, aisleY + 6); ctx.closePath(); ctx.fill();
-  ctx.fillRect(16, aisleY - 1.5, 12, 3);
-  ctx.font = `500 10px ${colors.mono}`;
-  ctx.fillStyle = colors.muted; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-  ctx.fillText("L1", 8, aisleY - 10);
+  const dy = Y(AISLE_Y);
+  ctx.beginPath(); ctx.moveTo(6, dy); ctx.lineTo(17, dy - 6); ctx.lineTo(17, dy + 6); ctx.closePath(); ctx.fill();
+  ctx.fillRect(17, dy - 1.5, 12, 3);
+  ctx.font = `500 10px ${colors.mono}`; ctx.fillStyle = colors.muted;
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+  ctx.fillText("L1", 8, dy - 10);
 
-  // seats
-  const seatW = Math.min(cpr * cellW * 0.78, laneH * 0.86);
-  const seatH = Math.min(laneH * 0.78, seatW * 1.2);
-  const laneOf = { A: 0, B: 1, C: 2, D: 4, E: 5, F: 6 };
+  const r0 = Math.max(2, 0.17 * k);                  // a person seen from above
+  const person = (x, y, fill, stroke) => {
+    ctx.beginPath(); ctx.arc(x, y, r0, 0, Math.PI * 2);
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = Math.max(1.5, r0 * 0.35); ctx.stroke(); }
+  };
+
+  // seats and people still in their row
   ctx.textAlign = "center"; ctx.textBaseline = "top";
-  for (let r = 0; r < sim.rows; r++) {
-    const cx = x0 + (sim.front_cells + (r + 0.5) * cpr) * cellW;
+  for (let r = 0; r < cfg.rows; r++) {
+    const cx = X(sim.rowX(r));
     for (const col of COLS) {
-      const cy = top + laneH * (laneOf[col] + 0.5);
-      const p = sim.byRC.get(r * 8 + COLS.indexOf(col));
-      const x = cx - seatW / 2, y = cy - seatH / 2;
-      const rad = Math.min(3, seatW / 3);
-      if (p && p.state === SEATED) {
-        ctx.fillStyle = colors.preparing;
-        ctx.beginPath(); ctx.roundRect(x, y, seatW, seatH, rad); ctx.fill();
-      } else {
-        ctx.fillStyle = colors.seat;
-        ctx.beginPath(); ctx.roundRect(x, y, seatW, seatH, rad); ctx.fill();
-        if (p && p.state === WAITING) {
-          ctx.fillStyle = colors.waiting;
-          ctx.beginPath(); ctx.arc(cx, cy, Math.max(1.8, Math.min(seatW, seatH) * 0.34), 0, Math.PI * 2); ctx.fill();
+      const cy = Y(LANE_Y[col]);
+      ctx.fillStyle = colors.seat;
+      ctx.beginPath(); ctx.roundRect(cx - cfg.seat_pitch * k * 0.36, cy - SEAT_W * k * 0.42,
+        cfg.seat_pitch * k * 0.72, SEAT_W * k * 0.84, Math.min(4, k * 0.08)); ctx.fill();
+    }
+    for (const p of sim.seatsByRow[r]) {
+      const seatY = LANE_Y[p.col];
+      const edgeY = p.left ? EDGE_Y.left : EDGE_Y.right;
+      if (p.state === S.SEATED) person(cx, Y(seatY), colors.preparing);
+      else if (p.state === S.READY) person(cx, Y(seatY), null, colors.waiting);
+      else if (p.state === S.TO_EDGE) {
+        const f = 1 - p.edgeLeft / p.toEdge;
+        person(cx, Y(seatY + (edgeY - seatY) * f), colors.waiting);
+      } else if (p.state === S.AT_EDGE) {
+        person(cx, Y(edgeY), colors.waiting);
+        if (p.hasBag && p.bagLeft < p.bag) {         // taking the bag down from the row
+          ctx.fillStyle = colors.bag;
+          ctx.fillRect(cx - r0 * 0.6, Y(edgeY) + (p.left ? -2.2 : 1.2) * r0, r0 * 1.2, r0);
         }
       }
     }
     if ((r + 1) % 5 === 0 || r === 0) {
       ctx.fillStyle = colors.muted; ctx.font = `400 10px ${colors.mono}`;
-      ctx.fillText(String(r + 1), cx, top + laneH * lanes + 6);
+      ctx.fillText(String(r + 1), cx, Y(CABIN_W) + 6);
     }
   }
-  // aisle occupants
-  const rad = Math.max(2, Math.min(cellW * 0.44, laneH * 0.42));
-  for (let i = 0; i < sim.nCells; i++) {
-    const p = sim.aisle[i];
-    if (!p) continue;
-    const cx = x0 + (i + 0.5) * cellW;
-    if (p.state === WALKING) {
-      ctx.fillStyle = colors.walking;
-      ctx.beginPath(); ctx.arc(cx, aisleY, rad, 0, Math.PI * 2); ctx.fill();
-      if (sim.yielders.has(p.pid)) {
-        ctx.strokeStyle = colors.ink; ctx.lineWidth = 1.2; ctx.setLineDash([2, 1.6]);
-        ctx.beginPath(); ctx.arc(cx, aisleY, rad + 2.5, 0, Math.PI * 2); ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    } else if (p.state === ENTERING) {
+
+  // people in the aisle, at their true position and size
+  for (const p of sim.aisle) {
+    const xm = p.px !== undefined && p.px >= 0 ? p.px + (p.x - p.px) * alpha : p.x;
+    const cx = X(xm);
+    let cy = Y(AISLE_Y);
+    const rx = Math.max(2, (p.carrying ? p.depth : p.length) / 2 * k);
+    const ry = Math.max(2, 0.2 * k);
+    if (p.state === S.ENTERING) {
+      const edgeY = p.left ? EDGE_Y.left : EDGE_Y.right;
+      const f = 1 - p.enterLeft / p.stepIn;
+      cy = Y(edgeY + (AISLE_Y - edgeY) * f);
       ctx.fillStyle = colors.entering;
       ctx.beginPath();
-      ctx.moveTo(cx, aisleY - rad * 1.15); ctx.lineTo(cx + rad * 1.15, aisleY);
-      ctx.lineTo(cx, aisleY + rad * 1.15); ctx.lineTo(cx - rad * 1.15, aisleY); ctx.closePath(); ctx.fill();
-    } else if (p.state === RETRIEVING) {
+      ctx.moveTo(cx, cy - ry * 1.2); ctx.lineTo(cx + rx * 1.2, cy); ctx.lineTo(cx, cy + ry * 1.2); ctx.lineTo(cx - rx * 1.2, cy);
+      ctx.closePath(); ctx.fill();
+      continue;
+    }
+    if (p.carrying) {                                 // bag trailing behind them
+      const bl = sim.cfg.bag_length * k;
+      ctx.fillStyle = colors.luggage;
+      ctx.beginPath(); ctx.roundRect(cx + rx + 1, cy - ry * 0.6, Math.max(2, bl - 2), ry * 1.2, 2); ctx.fill();
+    }
+    if (p.state === S.RETRIEVING) {
       ctx.fillStyle = colors.bag;
-      ctx.beginPath(); ctx.roundRect(cx - rad, aisleY - rad, rad * 2, rad * 2, 1.5); ctx.fill();
+      ctx.beginPath(); ctx.roundRect(cx - rx, cy - ry, rx * 2, ry * 2, 2); ctx.fill();
+    } else if (p.state === S.BACKTRACK) {
+      ctx.strokeStyle = colors.bag; ctx.lineWidth = Math.max(1.5, ry * 0.4);
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.stroke();
+    } else {
+      ctx.fillStyle = colors.walking;
+      ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+      if (p.yieldRow !== null) {
+        ctx.strokeStyle = colors.ink; ctx.lineWidth = 1.2; ctx.setLineDash([2, 1.6]);
+        ctx.beginPath(); ctx.ellipse(cx, cy, rx + 3, ry + 3, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
     }
   }
 }
@@ -824,7 +648,7 @@ function drawAll() {
   drawExits();
 }
 
-// ---- charts helpers --------------------------------------------------------
+// ---- chart helpers ---------------------------------------------------------
 function niceStep(max, target) {
   const raw = max / target;
   const mag = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -837,10 +661,9 @@ function timeStep(maxS) {
 }
 function placeTip(tip, box, x, y) {
   tip.hidden = false;
-  const bw = box.clientWidth;
   const tw = tip.offsetWidth;
   let left = x + 14;
-  if (left + tw > bw) left = x - tw - 14;
+  if (left + tw > box.clientWidth) left = x - tw - 14;
   tip.style.left = Math.max(0, left) + "px";
   tip.style.top = Math.max(0, y - 10) + "px";
 }
@@ -848,8 +671,7 @@ function placeTip(tip, box, x, y) {
 // ---- exits chart -----------------------------------------------------------
 let exitsHover = null;
 function drawExits() {
-  const canvas = $("exits-chart");
-  const { ctx, w, h } = setupCanvas(canvas, 280);
+  const { ctx, w, h } = setupCanvas($("exits-chart"), 280);
   ctx.clearRect(0, 0, w, h);
   const pad = { l: 40, r: 16, t: 10, b: 30 };
   const dt = live.a.dt;
@@ -859,21 +681,16 @@ function drawExits() {
   const xs = (t) => pad.l + (t / tMax) * (w - pad.l - pad.r);
   const ys = (v) => h - pad.b - (v / n) * (h - pad.t - pad.b);
 
-  // grid + axes
   ctx.strokeStyle = colors["line-2"]; ctx.lineWidth = 1;
   ctx.font = `400 11px ${colors.mono}`; ctx.fillStyle = colors.muted;
-  const yStep = niceStep(n, 4);
   ctx.textAlign = "right"; ctx.textBaseline = "middle";
-  for (let v = 0; v <= n + 1e-9; v += yStep) {
+  for (let v = 0, st = niceStep(n, 4); v <= n + 1e-9; v += st) {
     const y = Math.round(ys(v)) + 0.5;
     ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
     ctx.fillText(String(Math.round(v)), pad.l - 6, y);
   }
   ctx.textAlign = "center"; ctx.textBaseline = "top";
-  const ts = timeStep(tMax);
-  for (let t = 0; t <= tMax + 1e-9; t += ts) {
-    ctx.fillText(fmtTime(t), xs(t), h - pad.b + 8);
-  }
+  for (let t = 0, st = timeStep(tMax); t <= tMax + 1e-9; t += st) ctx.fillText(fmtTime(t), xs(t), h - pad.b + 8);
   ctx.strokeStyle = colors.line;
   ctx.beginPath(); ctx.moveTo(pad.l, h - pad.b + 0.5); ctx.lineTo(w - pad.r, h - pad.b + 0.5); ctx.stroke();
 
@@ -887,94 +704,113 @@ function drawExits() {
     s.hist.forEach((v, i) => { const x = xs(i * dt), y = ys(v); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
     ctx.stroke();
   }
-  // end markers + direct labels (text in ink, marker carries identity)
   const ends = series.map((s) => ({ s, x: xs((s.hist.length - 1) * dt), y: ys(s.hist[s.hist.length - 1]) }));
-  if (Math.abs(ends[0].y - ends[1].y) < 16 && Math.abs(ends[0].x - ends[1].x) < 110) ends[0].y -= 16;
+  let labelY = ends.map((e) => e.y);
+  if (Math.abs(labelY[0] - labelY[1]) < 16 && Math.abs(ends[0].x - ends[1].x) < 130) labelY[0] -= 16;
   ctx.font = `500 12px ${colors.body}`; ctx.textBaseline = "middle";
-  for (const e of ends) {
-    ctx.fillStyle = colors.surface;
-    ctx.beginPath(); ctx.arc(e.x, ys(e.s.hist[e.s.hist.length - 1]), 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = e.s.color;
-    ctx.beginPath(); ctx.arc(e.x, ys(e.s.hist[e.s.hist.length - 1]), 4, 0, Math.PI * 2); ctx.fill();
+  ends.forEach((e, i) => {
+    ctx.fillStyle = colors.surface; ctx.beginPath(); ctx.arc(e.x, e.y, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = e.s.color; ctx.beginPath(); ctx.arc(e.x, e.y, 4, 0, Math.PI * 2); ctx.fill();
     if (e.s.sim.nInside === 0) {
       const txt = `${e.s.label} ${fmtTime(e.s.sim.time)}`;
-      const tw = ctx.measureText(txt).width;
-      const right = e.x + 10 + tw < w - pad.r;
+      const right = e.x + 10 + ctx.measureText(txt).width < w - pad.r;
       ctx.textAlign = right ? "left" : "right";
       ctx.fillStyle = colors.ink;
-      ctx.fillText(txt, right ? e.x + 10 : e.x - 10, e.y - (right ? 0 : 12));
+      ctx.fillText(txt, right ? e.x + 10 : e.x - 10, labelY[i] - (right ? 0 : 12));
     }
+  });
+  const tip = $("exits-tip");
+  if (exitsHover === null) { tip.hidden = true; return; }
+  const t = Math.max(0, Math.min(tMaxData, ((exitsHover - pad.l) / (w - pad.l - pad.r)) * tMax));
+  const i = Math.round(t / dt);
+  const x = xs(i * dt);
+  ctx.strokeStyle = colors.muted; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x + 0.5, pad.t); ctx.lineTo(x + 0.5, h - pad.b); ctx.stroke();
+  const va = live.histA[Math.min(i, live.histA.length - 1)];
+  const vb = live.histB[Math.min(i, live.histB.length - 1)];
+  for (const [v, c] of [[va, colors.courtesy], [vb, colors.priority]]) {
+    ctx.fillStyle = colors.surface; ctx.beginPath(); ctx.arc(x, ys(v), 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, ys(v), 4, 0, Math.PI * 2); ctx.fill();
   }
-  // crosshair
-  if (exitsHover !== null) {
-    const t = Math.max(0, Math.min(tMaxData, ((exitsHover - pad.l) / (w - pad.l - pad.r)) * tMax));
-    const i = Math.round(t / dt);
-    const x = xs(i * dt);
-    ctx.strokeStyle = colors.muted; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x + 0.5, pad.t); ctx.lineTo(x + 0.5, h - pad.b); ctx.stroke();
-    const va = live.histA[Math.min(i, live.histA.length - 1)];
-    const vb = live.histB[Math.min(i, live.histB.length - 1)];
-    for (const [v, c] of [[va, colors.courtesy], [vb, colors.priority]]) {
-      ctx.fillStyle = colors.surface; ctx.beginPath(); ctx.arc(x, ys(v), 6, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, ys(v), 4, 0, Math.PI * 2); ctx.fill();
-    }
-    const tip = $("exits-tip");
-    tip.innerHTML = `<b>${fmtTime(i * dt)}</b>` +
-      `<div class="row"><span class="swatch" style="background:var(--courtesy)"></span>Cortesía: ${va} fuera</div>` +
-      `<div class="row"><span class="swatch" style="background:var(--priority)"></span>Pasillo primero: ${vb} fuera</div>`;
-    placeTip(tip, $("exits-box"), x, pad.t + 10);
-  } else {
-    $("exits-tip").hidden = true;
-  }
+  tip.innerHTML = `<b>${fmtTime(i * dt)}</b>` +
+    `<div class="row"><span class="swatch" style="background:var(--courtesy)"></span>Cortesía: ${va} fuera</div>` +
+    `<div class="row"><span class="swatch" style="background:var(--priority)"></span>Pasillo primero: ${vb} fuera</div>`;
+  placeTip(tip, $("exits-box"), x, pad.t + 10);
 }
 $("exits-chart").addEventListener("pointermove", (e) => {
-  const r = e.currentTarget.getBoundingClientRect();
-  exitsHover = e.clientX - r.left; drawExits();
+  exitsHover = e.clientX - e.currentTarget.getBoundingClientRect().left; drawExits();
 });
 $("exits-chart").addEventListener("pointerleave", () => { exitsHover = null; drawExits(); });
 
-// ---- Monte Carlo -----------------------------------------------------------
-const CURVE_P = [0, 0.1, 0.25, 0.5, 0.75, 1];
-let mc = null;          // { params, k, results: {p: [metrics]} }
-let mcToken = 0;
-let curveHover = null;
+// ---- Monte Carlo (web workers) --------------------------------------------
+const CURVE_P = [0, 0.25, 0.5, 0.75, 1];
+const N_WORKERS = Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1));
+let workers = null;
+let mc = null, mcToken = 0, curveHover = null;
 
-function mcParams() {
-  const p = readParams();
-  return { rows: p.rows, p_occupancy: p.p_occupancy, p_bag: p.p_bag, p_prefetch: p.p_prefetch,
-    door_headway: p.door_headway, seed: p.seed };
+function getWorkers() {
+  if (workers) return workers;
+  try { workers = Array.from({ length: N_WORKERS }, () => new Worker("mc-worker.js")); }
+  catch (e) { workers = []; }
+  return workers;
 }
 
 function runMonteCarlo() {
   const token = ++mcToken;
-  const params = mcParams();
+  const p = readParams();
+  const cfg = configFor(p);
   const k = Number($("mc-k").value);
   $("mc-k-label").textContent = k;
-  const seeds = runSeeds(k, params.seed);
-  const results = Object.fromEntries(CURVE_P.map((p) => [p, []]));
+  const seeds = runSeeds(k, p.seed);
   const jobs = [];
-  for (const p of CURVE_P) for (const s of seeds) jobs.push([p, s]);
-  let idx = 0;
+  for (const py of CURVE_P) seeds.forEach((s, i) => jobs.push({ py, i, job: [{ p_yield: py }, s] }));
+  const results = Object.fromEntries(CURVE_P.map((py) => [py, new Array(k)]));
+  let done = 0;
   const t0 = performance.now();
   $("mc-status").textContent = "Calculando…";
   $("mc-progress").hidden = false;
-  function chunk() {
+  $("mc-progress").value = 0;
+
+  const finish = () => {
     if (token !== mcToken) return;
-    const until = performance.now() + 30;
-    while (idx < jobs.length && performance.now() < until) {
-      const [p, s] = jobs[idx++];
-      const sim = new Sim({ ...params, p_yield: p, seed: s });
-      sim.run();
-      results[p].push(sim.metrics());
-    }
-    $("mc-progress").value = idx / jobs.length;
-    if (idx < jobs.length) { setTimeout(chunk, 0); return; }
-    mc = { params, k, results };
+    mc = { params: p, cfg, k, results };
     $("mc-progress").hidden = true;
-    $("mc-status").textContent = `${jobs.length} simulaciones en ${fmtNum((performance.now() - t0) / 1000, 1)} s · semilla ${params.seed}`;
+    $("mc-status").textContent =
+      `${jobs.length} simulaciones en ${fmtNum((performance.now() - t0) / 1000, 1)} s · semilla ${p.seed}`;
     renderMonteCarlo();
+  };
+  const record = (j, metrics) => {
+    results[j.py][j.i] = metrics;
+    done++;
+    $("mc-progress").value = done / jobs.length;
+    if (done === jobs.length) finish();
+  };
+
+  const pool = getWorkers();
+  if (!pool.length) {                                 // no workers: run in slices on the main thread
+    let idx = 0;
+    const chunk = () => {
+      if (token !== mcToken) return;
+      const until = performance.now() + 25;
+      while (idx < jobs.length && performance.now() < until) {
+        const j = jobs[idx++];
+        const sim = new Sim({ ...cfg, ...j.job[0] }, j.job[1]);
+        sim.run();
+        record(j, sim.metrics());
+      }
+      if (idx < jobs.length) setTimeout(chunk, 0);
+    };
+    setTimeout(chunk, 0);
+    return;
   }
-  setTimeout(chunk, 0);
+  pool.forEach((wk, wi) => {
+    const mine = jobs.filter((_, i) => i % pool.length === wi);
+    wk.onmessage = (e) => {
+      if (e.data.id !== token || e.data.done) return;
+      record(mine[e.data.index], e.data.metrics);
+    };
+    wk.postMessage({ id: token, base: cfg, jobs: mine.map((j) => j.job) });
+  });
 }
 
 function statsOf(xs) {
@@ -982,45 +818,41 @@ function statsOf(xs) {
   const mean = xs.reduce((s, x) => s + x, 0) / n;
   const sd = n > 1 ? Math.sqrt(xs.reduce((s, x) => s + (x - mean) ** 2, 0) / (n - 1)) : 0;
   const half = 1.96 * sd / Math.sqrt(n);
-  return { mean, sd, lo: mean - half, hi: mean + half };
+  return { mean, lo: mean - half, hi: mean + half };
 }
 
 function renderMonteCarlo() {
   if (!mc) return;
-  const tot = (p) => mc.results[p].map((m) => m.total);
+  const tot = (py) => mc.results[py].map((m) => m.total);
   const court = statsOf(tot(1)), prio = statsOf(tot(0));
   const [d, lo, hi] = pairedCI(tot(1), tot(0), mc.params.seed);
   const exitsCourt = statsOf(mc.results[1].map((m) => m.mean_exit));
   const exitsPrio = statsOf(mc.results[0].map((m) => m.mean_exit));
-  const n = new Sim({ ...mc.params, p_yield: 0 }).pax.length;
+  const n = mc.cfg.rows * 6 * mc.cfg.p_occupancy;
   $("tile-court").textContent = fmtTime(court.mean);
   $("tile-court-sub").textContent = `${fmtNum(n / (court.mean / 60), 1)} pax/min · salida media por pasajero ${fmtTime(exitsCourt.mean)}`;
   $("tile-prio").textContent = fmtTime(prio.mean);
   $("tile-prio-sub").textContent = `${fmtNum(n / (prio.mean / 60), 1)} pax/min · salida media por pasajero ${fmtTime(exitsPrio.mean)}`;
   $("tile-diff").textContent = d >= 0 ? fmtTime(d) : "−" + fmtTime(-d);
-  const pct = d / court.mean * 100;
   $("tile-diff-sub").textContent = d >= 0
-    ? `${fmtNum(pct, 0)} % menos que con cortesía · IC 95 % ${fmtTime(lo)} a ${fmtTime(hi)}`
+    ? `${fmtNum(d / court.mean * 100, 0)} % menos que con cortesía · IC 95 % ${fmtTime(lo)} a ${fmtTime(hi)}`
     : `el pasillo primero tarda más · IC 95 % ${fmtSigned(-hi)} a ${fmtSigned(-lo)}`;
-
-  const rows = CURVE_P.map((p) => {
-    const s = statsOf(tot(p));
-    const ex = statsOf(mc.results[p].map((m) => m.mean_exit));
-    return `<tr><td>${fmtNum(p, 2)}</td><td class="num">${fmtTime(s.mean)}</td>` +
+  $("curve-table").innerHTML = CURVE_P.map((py) => {
+    const s = statsOf(tot(py));
+    const ex = statsOf(mc.results[py].map((m) => m.mean_exit));
+    return `<tr><td>${fmtNum(py, 2)}</td><td class="num">${fmtTime(s.mean)}</td>` +
       `<td class="num">${fmtTime(s.lo)} – ${fmtTime(s.hi)}</td><td class="num">${fmtTime(ex.mean)}</td>` +
       `<td class="num">${fmtNum(n / (s.mean / 60), 1)} pax/min</td></tr>`;
-  });
-  $("curve-table").innerHTML = rows.join("");
+  }).join("");
   drawCurve();
 }
 
 function drawCurve() {
-  const canvas = $("curve-chart");
-  const { ctx, w, h } = setupCanvas(canvas, 260);
+  const { ctx, w, h } = setupCanvas($("curve-chart"), 260);
   ctx.clearRect(0, 0, w, h);
   if (!mc) return;
   const pad = { l: 44, r: 20, t: 12, b: 40 };
-  const pts = CURVE_P.map((p) => ({ p, ...statsOf(mc.results[p].map((m) => m.total)) }));
+  const pts = CURVE_P.map((py) => ({ p: py, ...statsOf(mc.results[py].map((m) => m.total)) }));
   const yMax = Math.max(...pts.map((q) => q.hi)) * 1.08;
   const ystep = timeStep(yMax);
   const yTop = Math.ceil(yMax / ystep) * ystep;
@@ -1036,19 +868,14 @@ function drawCurve() {
     ctx.fillText(fmtTime(v), pad.l - 6, y);
   }
   ctx.textAlign = "center"; ctx.textBaseline = "top";
-  for (const p of [0, 0.25, 0.5, 0.75, 1]) ctx.fillText(fmtNum(p, 2), xs(p), h - pad.b + 8);
+  for (const p of CURVE_P) ctx.fillText(fmtNum(p, 2), xs(p), h - pad.b + 8);
   ctx.font = `400 12px ${colors.body}`; ctx.fillStyle = colors["ink-2"];
-  ctx.fillText("Probabilidad de que el que camina ceda el paso", (pad.l + w - pad.r) / 2, h - pad.b + 22);
+  ctx.fillText("Probabilidad de que quien camina ceda el paso", (pad.l + w - pad.r) / 2, h - pad.b + 22);
   ctx.strokeStyle = colors.line;
   ctx.beginPath(); ctx.moveTo(pad.l, h - pad.b + 0.5); ctx.lineTo(w - pad.r, h - pad.b + 0.5); ctx.stroke();
 
-  // whiskers
   ctx.strokeStyle = colors["ink-2"]; ctx.lineWidth = 1.5;
-  for (const q of pts) {
-    const x = xs(q.p);
-    ctx.beginPath(); ctx.moveTo(x, ys(q.lo)); ctx.lineTo(x, ys(q.hi)); ctx.stroke();
-  }
-  // line in the neutral ink: single series, the endpoints carry the policy colours
+  for (const q of pts) { ctx.beginPath(); ctx.moveTo(xs(q.p), ys(q.lo)); ctx.lineTo(xs(q.p), ys(q.hi)); ctx.stroke(); }
   ctx.strokeStyle = colors.ink; ctx.lineWidth = 2; ctx.lineJoin = "round";
   ctx.beginPath();
   pts.forEach((q, i) => (i ? ctx.lineTo(xs(q.p), ys(q.mean)) : ctx.moveTo(xs(q.p), ys(q.mean))));
@@ -1059,40 +886,37 @@ function drawCurve() {
     ctx.fillStyle = colors.surface; ctx.beginPath(); ctx.arc(xs(q.p), ys(q.mean), r + 2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = fill; ctx.beginPath(); ctx.arc(xs(q.p), ys(q.mean), r, 0, Math.PI * 2); ctx.fill();
   }
-  // direct labels at the two policies
   ctx.font = `500 12px ${colors.body}`; ctx.fillStyle = colors.ink; ctx.textBaseline = "bottom";
   const p0 = pts[0], p1 = pts[pts.length - 1];
   ctx.textAlign = "left"; ctx.fillText(`Pasillo primero ${fmtTime(p0.mean)}`, xs(0) + 10, ys(p0.mean) - 8);
   ctx.textAlign = "right"; ctx.fillText(`Cortesía ${fmtTime(p1.mean)}`, xs(1) - 10, ys(p1.mean) - 8);
 
   const tip = $("curve-tip");
-  if (curveHover !== null) {
-    const q = pts.find((z) => z.p === curveHover);
-    tip.innerHTML = `<b>Cede con probabilidad ${fmtNum(q.p, 2)}</b><div>Media ${fmtTime(q.mean)} · IC 95 % ${fmtTime(q.lo)} – ${fmtTime(q.hi)}</div><div>${mc.k} aviones</div>`;
-    placeTip(tip, $("curve-box"), xs(q.p), ys(q.mean) - 30);
-  } else tip.hidden = true;
+  if (curveHover === null) { tip.hidden = true; return; }
+  const q = pts.find((z) => z.p === curveHover);
+  tip.innerHTML = `<b>Cede con probabilidad ${fmtNum(q.p, 2)}</b><div>Media ${fmtTime(q.mean)} · IC 95 % ${fmtTime(q.lo)} – ${fmtTime(q.hi)}</div><div>${mc.k} aviones</div>`;
+  placeTip(tip, $("curve-box"), xs(q.p), ys(q.mean) - 30);
 }
 $("curve-chart").addEventListener("pointermove", (e) => {
   if (!mc) return;
   const r = e.currentTarget.getBoundingClientRect();
   const x = e.clientX - r.left;
-  const w = r.width, l = 44, rr = 20;
   let best = null, bd = Infinity;
-  for (const p of CURVE_P) { const d = Math.abs(l + p * (w - l - rr) - x); if (d < bd) { bd = d; best = p; } }
+  for (const p of CURVE_P) { const d = Math.abs(44 + p * (r.width - 64) - x); if (d < bd) { bd = d; best = p; } }
   const next = bd < 40 ? best : null;
   if (next !== curveHover) { curveHover = next; drawCurve(); }
 });
 $("curve-chart").addEventListener("pointerleave", () => { curveHover = null; drawCurve(); });
 
-// ---- sensitivity table (static, from the Python sweep) ---------------------
+// ---- sensitivity table (from the Python sweep) -----------------------------
 const SENS_LABEL = {
-  p_prefetch: ["Cogen la maleta junto al asiento", (v) => `${Math.round(v * 100)} %`],
+  p_prefetch: ["Sacan la maleta en su fila", (v) => `${Math.round(v * 100)} %`],
   p_bag: ["Llevan maleta en el compartimento", (v) => `${Math.round(v * 100)} %`],
   p_occupancy: ["Ocupación", (v) => `${Math.round(v * 100)} %`],
   door_headway: ["Puerta: segundos por pasajero", (v) => `${fmtNum(v, 1)} s`],
-  bag_mode: ["Tiempo típico de coger la maleta", (v) => `${v} s`],
-  prep_mode: ["Tiempo típico de preparación sentado", (v) => `${v} s`],
-  cells_per_row: ["Personas de pie por fila", (v) => fmtNum(v, 1)],
+  bag_scale: ["Tiempo de sacar la maleta", (v) => `×${fmtNum(v, 1)}`],
+  bins_elsewhere: ["Maletas lejos de su fila", (v) => `${Math.round(v * 100)} %`],
+  gap_distance: ["Hueco mínimo para salir sin que te cedan el paso", (v) => `${fmtNum(v, 1)} m`],
 };
 function renderSensitivity() {
   let prev = null;
@@ -1103,32 +927,31 @@ function renderSensitivity() {
     return `<tr><td>${first ? label : ""}</td><td class="num">${fmt(r.value)}</td>` +
       `<td class="num">${fmtTime(r.courtesy)}</td><td class="num">${fmtTime(r.aisle)}</td>` +
       `<td class="num">${fmtSigned(r.diff)} (${fmtSigned(r.lo)} a ${fmtSigned(r.hi)}) · ${pct >= 0 ? "+" : "−"}${fmtNum(Math.abs(pct), 0)} %</td></tr>`;
-  }).join("") || `<tr><td colspan="5">Sin datos: ejecuta <code>python export_parity.py</code>.</td></tr>`;
+  }).join("") || `<tr><td colspan="5">Aún no hay barrido para este modelo.</td></tr>`;
 }
 
 // ---- parity with Python ----------------------------------------------------
 function checkParity() {
-  if (!PARITY.length) { $("parity").textContent = "sin datos de referencia"; return; }
   let ok = 0;
   for (const c of PARITY) {
-    const sim = new Sim(c.kwargs);
+    const sim = new Sim({ ...DEFAULT_CONFIG, ...c.overrides }, c.seed);
     sim.run();
-    const checksum = sim.pax.reduce((s, p) => (s + (p.pid + 1) * p.tExit) % 2147483647, 0);
-    if (sim.tick === c.ticks && checksum === c.checksum && sim.pax.length === c.n) ok++;
+    let cs = 0;
+    for (const p of sim.pax) cs = (cs + (p.pid + 1) * p.tExit) % 2147483647;
+    if (sim.tick === c.ticks && cs === c.checksum && sim.pax.length === c.n) ok++;
   }
   const el = $("parity");
   el.className = "check " + (ok === PARITY.length ? "ok" : "bad");
-  el.textContent = ok === PARITY.length
-    ? `✓ ${ok} de ${PARITY.length} casos idénticos`
+  el.textContent = ok === PARITY.length ? `✓ ${ok} de ${PARITY.length} casos idénticos`
     : `✗ solo ${ok} de ${PARITY.length} casos coinciden`;
 }
 
-// ---- wiring ---------------------------------------------------------------
+// ---- wiring ----------------------------------------------------------------
 let mcTimer = null;
 function onParamsChange() {
   newLive();
   clearTimeout(mcTimer);
-  mcTimer = setTimeout(runMonteCarlo, 500);
+  mcTimer = setTimeout(runMonteCarlo, 600);
 }
 for (const k of Object.keys(PARAMS)) $(k).addEventListener("input", onParamsChange);
 $("seed").addEventListener("change", onParamsChange);
@@ -1154,15 +977,15 @@ window.addEventListener("resize", () => { drawAll(); drawCurve(); });
 readColors();
 newLive();
 if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  // No animation: show both planes already finished.
+  // no animation: show both planes already finished
   while (live.a.nInside > 0 || live.b.nInside > 0) { advance(live.a, live.histA); advance(live.b, live.histB); }
   playing = false;
   $("play").textContent = "Reproducir";
   drawAll();
 }
 renderSensitivity();
-checkParity();
+setTimeout(checkParity, 50);
 runMonteCarlo();
 requestAnimationFrame(frame);
-document.fonts?.ready.then(() => { readColors(); drawAll(); drawCurve(); });
+document.fonts?.ready.then(redrawEverything);
 </script>
