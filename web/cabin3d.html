@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cabina en 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #e9edf2;
+    --surface: rgb(255 255 255 / 0.9);
+    --ink: #141b26;
+    --ink-2: #4a5566;
+    --muted: #6f7a8b;
+    --line: #d6dce4;
+    --accent: #1f3a68;
+    --accent-ink: #ffffff;
+    --floor: #d5dae1;
+    --carpet: #9aa3b1;
+    --seat: #34466b;
+    --wall: #f4f6f9;
+    --bin: #ffffff;
+    --preparing: #8d99aa;
+    --waiting: #1baf7a;
+    --entering: #eda100;
+    --bag: #e87ba4;
+    --walking: #4a3aa7;
+    --luggage: #3d4553;
+    --courtesy: #eb6834;
+    --priority: #2a78d6;
+    --focus: #2a78d6;
+    --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0d1218;
+      --surface: rgb(23 30 40 / 0.9);
+      --ink: #e8edf3;
+      --ink-2: #aeb8c6;
+      --muted: #818c9c;
+      --line: #2c3644;
+      --accent: #9db8e8;
+      --accent-ink: #0f141b;
+      --floor: #2a3240;
+      --carpet: #3c4658;
+      --seat: #3f5484;
+      --wall: #1f2733;
+      --bin: #c9d2de;
+      --preparing: #7d8898;
+      --waiting: #199e70;
+      --entering: #c98500;
+      --bag: #d55181;
+      --walking: #9085e9;
+      --luggage: #a3adbb;
+      --courtesy: #d95926;
+      --priority: #3987e5;
+      --focus: #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0d1218;
+    --surface: rgb(23 30 40 / 0.9);
+    --ink: #e8edf3;
+    --ink-2: #aeb8c6;
+    --muted: #818c9c;
+    --line: #2c3644;
+    --accent: #9db8e8;
+    --accent-ink: #0f141b;
+    --floor: #2a3240;
+    --carpet: #3c4658;
+    --seat: #3f5484;
+    --wall: #1f2733;
+    --bin: #c9d2de;
+    --preparing: #7d8898;
+    --waiting: #199e70;
+    --entering: #c98500;
+    --bag: #d55181;
+    --walking: #9085e9;
+    --luggage: #a3adbb;
+    --courtesy: #d95926;
+    --priority: #3987e5;
+    --focus: #3987e5;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font-body); overflow: hidden; }
+  [hidden] { display: none !important; }
+  #app { position: relative; height: 100%; }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .bar {
+    position: absolute; left: 12px; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 12px);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 14px; backdrop-filter: blur(6px);
+  }
+  .bar h1 { font: 600 1.35rem/1 var(--font-display); margin: 0; letter-spacing: 0.01em; }
+  .bar a { color: var(--ink-2); font-size: 0.88rem; }
+  .bar .spacer { flex: 1; }
+  .bar label { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 0.85rem; }
+  button, select, input[type="number"] {
+    font: inherit; color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 7px; padding: 5px 10px; min-height: 32px;
+  }
+  select, input[type="number"] { background: var(--surface); }
+  button { cursor: pointer; font-weight: 500; }
+  button:hover { border-color: var(--ink-2); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); min-width: 92px; }
+  input[type="number"] { width: 112px; font-family: var(--font-mono); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .tag {
+    position: absolute; left: 0; top: 0; pointer-events: none; white-space: nowrap;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+    padding: 5px 9px; transform: translate(-50%, -100%);
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .tag .name { display: flex; align-items: center; gap: 6px; font: 600 1.05rem/1.1 var(--font-display); }
+  .tag .meta { font: 400 0.8rem/1.2 var(--font-mono); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tag .clock { color: var(--ink); font-weight: 500; }
+  .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+
+  .legend {
+    position: absolute; left: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    max-width: calc(100% - 24px);
+    display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 12px; font-size: 0.8rem; color: var(--ink-2);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .hint { color: var(--muted); }
+  .error { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--ink-2); }
+  @media (max-width: 640px) {
+    .bar { gap: 6px 10px; padding: 8px 10px; }
+    .bar h1 { font-size: 1.15rem; width: 100%; }
+    .legend .hint { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="scene" aria-label="Dos cabinas de A320 en 3D desembarcando: cortesía y pasillo primero"></canvas>
+
+  <div class="bar">
+    <h1>¿Quién cede el pasillo? · 3D</h1>
+    <a href="index.html">Vista 2D y estadísticas</a>
+    <span class="spacer"></span>
+    <button id="play" class="primary" type="button">Pausar</button>
+    <button id="restart" type="button">Reiniciar</button>
+    <button id="newplane" type="button">Otro avión</button>
+    <label for="speed">Velocidad
+      <select id="speed">
+        <option value="1">×1</option>
+        <option value="3">×3</option>
+        <option value="8" selected>×8</option>
+        <option value="20">×20</option>
+      </select>
+    </label>
+    <label for="rows">Filas
+      <select id="rows">
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30" selected>30</option>
+      </select>
+    </label>
+    <label for="seed">Semilla <input id="seed" type="number" min="0" max="4294967295" step="1" value="1"></label>
+    <label for="camera">Cámara
+      <select id="camera">
+        <option value="general" selected>General</option>
+        <option value="doorA">Desde la puerta · cortesía</option>
+        <option value="doorB">Desde la puerta · pasillo primero</option>
+        <option value="side">Lateral</option>
+        <option value="top">Planta</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="tag" id="tag-a">
+    <span class="name"><span class="swatch" style="background: var(--courtesy)"></span>Cortesía</span>
+    <span class="meta"><span class="clock" id="clock-a">0:00</span> · <span id="out-a">0</span> fuera</span>
+  </div>
+  <div class="tag" id="tag-b">
+    <span class="name"><span class="swatch" style="background: var(--priority)"></span>Pasillo primero</span>
+    <span class="meta"><span class="clock" id="clock-b">0:00</span> · <span id="out-b">0</span> fuera</span>
+  </div>
+
+  <div class="legend" aria-label="Leyenda: color de la camiseta">
+    <span><span class="swatch" style="background: var(--preparing)"></span>Preparándose</span>
+    <span><span class="swatch" style="background: var(--waiting)"></span>Saliendo de la fila</span>
+    <span><span class="swatch" style="background: var(--entering)"></span>Entrando al pasillo</span>
+    <span><span class="swatch" style="background: var(--bag)"></span>Sacando la maleta o volviendo a por ella</span>
+    <span><span class="swatch" style="background: var(--walking)"></span>Caminando</span>
+    <span><svg width="16" height="10" viewBox="0 0 16 10"><ellipse cx="8" cy="5" rx="7" ry="3.5" fill="none" stroke="var(--ink)" stroke-width="1.6"/></svg>Parado cediendo el paso</span>
+    <span class="hint">Arrastra para girar · rueda o pellizco para acercar</span>
+  </div>
+  <div class="error" id="error" hidden></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="data.js"></script>
+<script src="model.js"></script>
+<script>
+"use strict";
+const { Sim, S, COLS } = window.Deboarding;
+const $ = (id) => document.getElementById(id);
+const fmtTime = (s) => { const t = Math.round(s); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+
+if (!window.THREE || !THREE.OrbitControls) {
+  $("error").hidden = false;
+  $("error").textContent = "No se ha podido cargar Three.js. Revisa la conexión y recarga la página.";
+  throw new Error("three.js missing");
+}
+
+// ---------------------------------------------------------------------------
+// Geometry of the cabin, in metres.  Model x = distance from the door along
+// the aisle (scene x); scene z = across the cabin (aisle at z = 0 of each cabin).
+// ---------------------------------------------------------------------------
+const LANE_Z = { A: -1.40, B: -0.94, C: -0.48, D: 0.48, E: 0.94, F: 1.40 };
+const EDGE_Z = 0.36;                 // where people stand in the row, next to the aisle
+const WALL_Z = 1.74;
+const CABIN_Z = [-2.35, 2.35];       // courtesy, aisle-first
+const HIP_STAND = 0.9, HIP_SEAT = 0.47;
+
+// ---------------------------------------------------------------------------
+// Renderer, scene, camera
+// ---------------------------------------------------------------------------
+const canvas = $("scene");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxPolarAngle = Math.PI * 0.49;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a93a3, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.55);
+sun.position.set(-6, 14, 8);
+scene.add(sun);
+
+// ---------------------------------------------------------------------------
+// Theme-aware materials
+// ---------------------------------------------------------------------------
+const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim();
+const M = {};
+const matNames = ["floor", "carpet", "seat", "wall", "bin", "preparing", "waiting", "entering", "bag", "walking", "luggage", "ink"];
+for (const n of matNames) M[n] = new THREE.MeshLambertMaterial();
+M.wall.transparent = true; M.wall.opacity = 0.55;
+M.bin.transparent = true; M.bin.opacity = 0.28; M.bin.depthWrite = false;
+M.lid = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0.55 });
+M.ring = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+M.shadow = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.16, depthWrite: false });
+const SKIN = [0xf1c7a5, 0xd9a17c, 0xa8704c, 0x6e4631].map((c) => new THREE.MeshLambertMaterial({ color: c }));
+const PANTS = [0x2e3440, 0x44506a, 0x5b4a3f, 0x23262c].map((c) => new THREE.MeshLambertMaterial({ color: c }));
+
+function applyTheme() {
+  scene.background = new THREE.Color(css("bg"));
+  for (const n of matNames) if (n !== "ink") M[n].color.set(css(n));
+  M.ink.color.set(css("ink"));
+  M.lid.color.set(css("bin"));
+  M.ring.color.set(css("ink"));
+}
+
+// ---------------------------------------------------------------------------
+// Shared geometries
+// ---------------------------------------------------------------------------
+const G = {
+  torso: new THREE.BoxGeometry(0.22, 0.52, 0.38),
+  head: new THREE.SphereGeometry(0.105, 14, 10),
+  thigh: new THREE.CylinderGeometry(0.065, 0.055, 0.44, 8).translate(0, -0.22, 0),
+  shin: new THREE.CylinderGeometry(0.052, 0.045, 0.44, 8).translate(0, -0.22, 0),
+  arm: new THREE.CylinderGeometry(0.042, 0.036, 0.56, 8).translate(0, -0.28, 0),
+  bag: new THREE.BoxGeometry(0.24, 0.44, 0.34),
+  shadow: new THREE.CircleGeometry(0.26, 20).rotateX(-Math.PI / 2),
+  ring: new THREE.RingGeometry(0.34, 0.41, 28).rotateX(-Math.PI / 2),
+  cushion: new THREE.BoxGeometry(0.46, 0.1, 0.42),
+  back: new THREE.BoxGeometry(0.09, 0.62, 0.42),
+  lid: new THREE.BoxGeometry(0.72, 0.34, 0.02).translate(0, -0.17, 0),
+};
+
+// ---------------------------------------------------------------------------
+// People: a small articulated figure facing -x (towards the door)
+// ---------------------------------------------------------------------------
+function makePerson(p) {
+  const h = (p.pid * 2654435761) >>> 0;              // stable per-person variety
+  const root = new THREE.Group();
+  const body = new THREE.Group();
+  const shirt = new THREE.Mesh(G.torso, M.preparing);
+  shirt.position.y = 0.27;
+  const head = new THREE.Mesh(G.head, SKIN[h % 4]);
+  head.position.y = 0.64;
+  const armL = new THREE.Group(), armR = new THREE.Group();
+  armL.position.set(0, 0.5, -0.235); armR.position.set(0, 0.5, 0.235);
+  const armMeshL = new THREE.Mesh(G.arm, M.preparing), armMeshR = new THREE.Mesh(G.arm, M.preparing);
+  armL.add(armMeshL); armR.add(armMeshR);
+  body.add(shirt, head, armL, armR);
+  const legs = [];
+  for (const side of [-1, 1]) {
+    const hip = new THREE.Group();
+    hip.position.set(0, HIP_STAND, side * 0.1);
+    const thigh = new THREE.Mesh(G.thigh, PANTS[(h >> 3) % 4]);
+    const knee = new THREE.Group();
+    knee.position.y = -0.44;
+    knee.add(new THREE.Mesh(G.shin, PANTS[(h >> 3) % 4]));
+    hip.add(thigh, knee);
+    root.add(hip);
+    legs.push({ hip, knee });
+  }
+  const bag = new THREE.Mesh(G.bag, M.luggage);
+  bag.visible = false;
+  const shadow = new THREE.Mesh(G.shadow, M.shadow);
+  shadow.position.y = 0.012;
+  const ring = new THREE.Mesh(G.ring, M.ring);
+  ring.position.y = 0.014;
+  ring.visible = false;
+  root.add(body, bag, shadow, ring);
+  const scale = 0.94 + ((h >> 7) % 13) / 100;         // 0.94 - 1.06
+  root.scale.setScalar(scale);
+  return {
+    root, body, shirt, armMeshL, armMeshR, armL, armR, legs, bag, shadow, ring,
+    phase: (h % 628) / 100, lastX: null, lastZ: null, yaw: 0,
+  };
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp01(t) { return t < 0 ? 0 : t > 1 ? 1 : t; }
+function smooth(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+function turnTowards(cur, target, maxStep) {
+  let d = target - cur;
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d < -Math.PI) d += 2 * Math.PI;
+  return cur + Math.max(-maxStep, Math.min(maxStep, d));
+}
+
+// Pose one person for the render time.  `a` = fraction of the current tick
+// (positions are interpolated between the previous and the current tick).
+function posePerson(fig, p, sim, a, z0, dtFrame, renderT) {
+  const side = LANE_Z[p.col] < 0 ? -1 : 1;           // -1: A B C, +1: D E F
+  const seatZ = LANE_Z[p.col];
+  const edgeZ = side * EDGE_Z;
+  const rowX = sim.rowX(p.row);
+  const prog = (total, left) => clamp01((total - left - 1 + a) / total);
+
+  let x = rowX, z = seatZ, sit = 1, hunch = 0, raise = 0, yaw = 0, moving = 0;
+  let shirt = M.preparing, bag = "none", visible = true, bagProgress = 0;
+
+  switch (p.state) {
+    case S.SEATED:
+      break;
+    case S.READY:
+      shirt = M.waiting;
+      hunch = 0.12;
+      break;
+    case S.TO_EDGE: {
+      shirt = M.waiting;
+      const f = prog(p.toEdge, p.edgeLeft);
+      const standPart = 1 / (1 + p.dist);
+      sit = 1 - smooth(f / standPart);
+      const lat = p.dist ? smooth((f - standPart) / (1 - standPart)) : smooth(f);
+      z = lerp(seatZ, edgeZ, lat);
+      hunch = p.dist ? 0.45 * (1 - lat) + 0.1 : 0.1;
+      yaw = f > standPart * 0.6 ? -side * Math.PI / 2 : 0;
+      moving = p.dist && f > standPart && f < 1 ? 1 : 0;
+      break;
+    }
+    case S.AT_EDGE:
+      shirt = M.waiting;
+      sit = 0; z = edgeZ;
+      if (p.hasBag && !p.carrying && p.bagLeft < p.bag) {     // taking the bag down from the row
+        shirt = M.bag;
+        raise = 1;
+        bagProgress = prog(p.bag, p.bagLeft);
+      }
+      if (p.carrying) bag = "hand";
+      break;
+    case S.EXITED: {
+      // walk out through the door and fade away
+      const out = renderT - p.tExit * sim.dt;
+      if (out > 3) { visible = false; break; }
+      x = -out * p.v0; z = 0; sit = 0; shirt = M.walking; moving = 1;
+      if (p.carrying) bag = "roll";
+      break;
+    }
+    default: {                                                  // in the aisle
+      sit = 0;
+      const px = p.px !== undefined && p.px >= 0 ? p.px : p.x;
+      x = lerp(px, p.x, a);
+      z = 0;
+      if (p.state === S.ENTERING) {
+        shirt = M.entering;
+        const f = prog(p.stepIn, p.enterLeft);
+        z = lerp(edgeZ, 0, smooth(f));
+        x = lerp(rowX, p.x, smooth(f));
+        yaw = lerp(-side * Math.PI / 2, 0, smooth(f));
+        moving = 1;
+        if (p.carrying) bag = "hand";
+      } else if (p.state === S.RETRIEVING) {
+        shirt = M.bag;
+        yaw = side < 0 ? -Math.PI / 2 : Math.PI / 2;           // face the bins on their side
+        raise = 1;
+        bagProgress = p.bagLeft === 0 ? 1 : prog(p.bag, p.bagLeft);
+      } else if (p.state === S.BACKTRACK) {
+        shirt = M.bag;
+        yaw = Math.PI;
+        moving = 1;
+      } else {
+        shirt = M.walking;
+        moving = p.v > 0.02 ? 1 : 0;
+        if (p.carrying) bag = "roll";
+      }
+    }
+  }
+
+  fig.root.visible = visible;
+  if (!visible) return;
+  fig.root.position.set(x, 0, z0 + z);
+
+  // walking cycle driven by the distance actually covered
+  if (fig.lastX !== null) {
+    const d = Math.hypot(x - fig.lastX, z - fig.lastZ);
+    fig.phase += d * (Math.PI / 0.36);
+  }
+  fig.lastX = x; fig.lastZ = z;
+  fig.yaw = turnTowards(fig.yaw, yaw, dtFrame * 6);
+  fig.root.rotation.y = fig.yaw;
+
+  const swing = moving ? Math.sin(fig.phase) * 0.5 : 0;
+  const hipY = lerp(HIP_STAND, HIP_SEAT, sit);
+  fig.body.position.y = hipY;
+  fig.body.rotation.z = hunch + sit * -0.08;
+  const [l, r] = fig.legs;
+  l.hip.position.y = r.hip.position.y = hipY;
+  l.hip.rotation.z = -Math.PI / 2 * sit + swing;
+  r.hip.rotation.z = -Math.PI / 2 * sit - swing;
+  l.knee.rotation.z = Math.PI / 2 * sit + (moving ? Math.max(0, Math.sin(fig.phase + 1.6)) * 0.7 : 0);
+  r.knee.rotation.z = Math.PI / 2 * sit + (moving ? Math.max(0, Math.sin(fig.phase + 1.6 + Math.PI)) * 0.7 : 0);
+
+  const armRest = sit ? -0.55 : 0;
+  const lift = raise ? -2.75 + (bagProgress > 0.75 ? (bagProgress - 0.75) * 4 * 2.0 : 0) : 0;
+  fig.armL.rotation.z = raise ? lift : armRest - swing * 0.8;
+  fig.armR.rotation.z = raise ? lift : (bag === "roll" ? 0.35 : armRest + swing * 0.8);
+  fig.armL.rotation.x = raise ? 0.15 : 0;
+  fig.armR.rotation.x = raise ? -0.15 : 0;
+
+  // bag: coming down from the bin, in hand, or rolling behind
+  fig.bag.visible = false;
+  if (raise && bagProgress > 0.55) {
+    const k = (bagProgress - 0.55) / 0.45;
+    fig.bag.visible = true;
+    fig.bag.position.set(-0.32, lerp(1.72, 0.26, smooth(k)), 0);
+    fig.bag.rotation.set(0, 0, 0);
+  } else if (bag === "hand") {
+    fig.bag.visible = true;
+    fig.bag.position.set(-0.05, 0.25, 0.32);
+    fig.bag.rotation.set(0, 0, 0);
+  } else if (bag === "roll") {
+    fig.bag.visible = true;
+    fig.bag.position.set(0.42, 0.24, 0.16);
+    fig.bag.rotation.set(0, 0, -0.35);
+  }
+
+  fig.shirt.material = shirt;
+  fig.armMeshL.material = shirt;
+  fig.armMeshR.material = shirt;
+  fig.ring.visible = p.state === S.WALKING && p.yieldRow !== null;
+  fig.shadow.visible = sit < 0.5;
+}
+
+// ---------------------------------------------------------------------------
+// Cabin
+// ---------------------------------------------------------------------------
+function buildCabin(sim, z0) {
+  const cfg = sim.cfg;
+  const group = new THREE.Group();
+  const length = cfg.door_to_row1 + cfg.rows * cfg.seat_pitch + 0.4;
+
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(length + 0.3, 0.06, WALL_Z * 2), M.floor);
+  floor.position.set(length / 2 - 0.15, -0.03, z0);
+  const carpet = new THREE.Mesh(new THREE.BoxGeometry(length, 0.01, 0.5), M.carpet);
+  carpet.position.set(length / 2, 0.006, z0);
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(3, 0.06, 1.1), M.floor);   // jet bridge
+  bridge.position.set(-1.8, -0.03, z0);
+  group.add(floor, carpet, bridge);
+
+  for (const s of [-1, 1]) {                                     // side walls
+    const wall = new THREE.Mesh(new THREE.BoxGeometry(length + 0.3, 1.25, 0.06), M.wall);
+    wall.position.set(length / 2 - 0.15, 0.62, z0 + s * WALL_Z);
+    group.add(wall);
+    const front = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.0, WALL_Z - 0.5), M.wall);  // bulkhead with the door gap
+    front.position.set(-0.3, 1.0, z0 + s * (0.5 + (WALL_Z - 0.5) / 2));
+    group.add(front);
+    const bin = new THREE.Mesh(new THREE.BoxGeometry(length - cfg.door_to_row1 + 0.4, 0.4,
+      WALL_Z - EDGE_Z), M.bin);
+    bin.position.set(cfg.door_to_row1 - cfg.seat_pitch / 2 + (length - cfg.door_to_row1 + 0.4) / 2 - 0.2,
+      1.78, z0 + s * (EDGE_Z + (WALL_Z - EDGE_Z) / 2));
+    group.add(bin);
+  }
+
+  const n = cfg.rows * 6;
+  const cushions = new THREE.InstancedMesh(G.cushion, M.seat, n);
+  const backs = new THREE.InstancedMesh(G.back, M.seat, n);
+  const m4 = new THREE.Matrix4();
+  let i = 0;
+  const lids = new Map();
+  for (let r = 0; r < cfg.rows; r++) {
+    const xr = sim.rowX(r);
+    for (const col of COLS) {
+      m4.makeTranslation(xr + 0.02, 0.4, z0 + LANE_Z[col]); cushions.setMatrixAt(i, m4);
+      m4.makeTranslation(xr + 0.24, 0.72, z0 + LANE_Z[col]); backs.setMatrixAt(i, m4);
+      i++;
+    }
+    for (const s of [-1, 1]) {                                   // one lid per row and side
+      const pivot = new THREE.Group();
+      pivot.position.set(xr, 1.98, z0 + s * EDGE_Z);
+      const lid = new THREE.Mesh(G.lid, M.lid);
+      lid.scale.x = cfg.seat_pitch / 0.72 * 0.96;
+      pivot.add(lid);
+      pivot.userData.side = s;
+      group.add(pivot);
+      lids.set(`${r}:${s}`, pivot);
+    }
+  }
+  group.add(cushions, backs);
+  return { group, lids, length };
+}
+
+// ---------------------------------------------------------------------------
+// World: two cabins and their passengers
+// ---------------------------------------------------------------------------
+let world = null;
+
+function config() {
+  return { ...DEFAULT_CONFIG, rows: Number($("rows").value) };
+}
+function seed() {
+  return Math.max(0, Math.min(4294967295, Math.floor(Number($("seed").value) || 0)));
+}
+
+const SHARED_GEOMETRY = new Set(Object.values(G));
+function build() {
+  if (world) {
+    scene.remove(world.root);
+    world.root.traverse((o) => {
+      if (o.isInstancedMesh) o.dispose();
+      if (o.isMesh && !SHARED_GEOMETRY.has(o.geometry)) o.geometry.dispose();
+    });
+  }
+  const cfg = config();
+  const sims = [new Sim({ ...cfg, p_yield: 1 }, seed()), new Sim({ ...cfg, p_yield: 0 }, seed())];
+  const root = new THREE.Group();
+  const cabins = sims.map((sim, k) => {
+    const cabin = buildCabin(sim, CABIN_Z[k]);
+    root.add(cabin.group);
+    const figs = sim.pax.map((p) => { const f = makePerson(p); root.add(f.root); return f; });
+    return { sim, cabin, figs };
+  });
+  scene.add(root);
+  world = { root, cabins, acc: 0, steps: 0, length: cabins[0].cabin.length };
+}
+
+// Both planes start together and share one clock; a finished plane just
+// stops stepping.  The clock runs a few seconds past the end so the last
+// passengers can be seen walking out.
+function stepWorld() {
+  for (const c of world.cabins) {
+    if (c.sim.nInside === 0) continue;
+    for (const p of c.sim.pax) p.px = p.x;
+    c.sim.step();
+  }
+  world.steps++;
+}
+const allOut = () => world.cabins.every((c) => c.sim.nInside === 0);
+const endTime = () => Math.max(...world.cabins.map((c) => c.sim.time));
+
+function openLids(entry) {
+  const { sim, cabin } = entry;
+  const open = new Set();
+  for (const p of sim.pax) {
+    const side = LANE_Z[p.col] < 0 ? -1 : 1;
+    if (p.state === S.RETRIEVING
+      || (p.state === S.AT_EDGE && p.hasBag && !p.carrying && p.bagLeft < p.bag)) open.add(`${p.binRow}:${side}`);
+  }
+  for (const [key, pivot] of cabin.lids) {
+    const target = open.has(key) ? pivot.userData.side * 1.25 : 0;   // swings up towards the aisle
+    pivot.rotation.x += (target - pivot.rotation.x) * 0.2;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Camera presets
+// ---------------------------------------------------------------------------
+let camTween = null;
+function cameraPreset(name, instant) {
+  const L = world.length;
+  const presets = {
+    general: [[L * 0.5 - 7, 11, 13], [L * 0.42, 0.2, 0]],
+    doorA: [[0.9, 1.75, CABIN_Z[0]], [L, 0.9, CABIN_Z[0]]],
+    doorB: [[0.9, 1.75, CABIN_Z[1]], [L, 0.9, CABIN_Z[1]]],
+    side: [[L * 0.45, 4.2, 12.5], [L * 0.45, 0.6, 0]],
+    top: [[L * 0.5, 24, 0.01], [L * 0.5, 0, 0]],
+  };
+  const [pos, target] = presets[name] || presets.general;
+  const to = { pos: new THREE.Vector3(...pos), target: new THREE.Vector3(...target) };
+  if (instant) {
+    camera.position.copy(to.pos); controls.target.copy(to.target); controls.update();
+    camTween = null;
+  } else {
+    camTween = { from: { pos: camera.position.clone(), target: controls.target.clone() }, to, t: 0 };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Loop
+// ---------------------------------------------------------------------------
+let playing = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+$("play").textContent = playing ? "Pausar" : "Reproducir";
+let last = null;
+const tagPos = new THREE.Vector3();
+
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.round(w * renderer.getPixelRatio()) || canvas.height !== Math.round(h * renderer.getPixelRatio())) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+}
+
+function placeTag(el, x, y, z) {
+  tagPos.set(x, y, z).project(camera);
+  const visible = tagPos.z < 1 && Math.abs(tagPos.x) < 1.1 && Math.abs(tagPos.y) < 1.1;
+  el.hidden = !visible;
+  if (!visible) return;
+  el.style.left = `${(tagPos.x * 0.5 + 0.5) * canvas.clientWidth}px`;
+  el.style.top = `${(-tagPos.y * 0.5 + 0.5) * canvas.clientHeight}px`;
+}
+
+function frame(ts) {
+  const dtFrame = last === null ? 0 : Math.min(0.1, (ts - last) / 1000);
+  last = ts;
+  resize();
+  const dt = world.cabins[0].sim.dt;
+  const running = !allOut() || world.steps * dt < endTime() + 3.5;
+  if (playing && running) {
+    world.acc += dtFrame * Number($("speed").value);
+    let steps = 0;
+    while (world.acc >= dt && steps < 200) { stepWorld(); world.acc -= dt; steps++; }
+  }
+  const a = running ? world.acc / dt : 1;
+  const renderT = (world.steps - 1 + a) * dt;
+  world.cabins.forEach((c, k) => {
+    c.sim.pax.forEach((p, i) => posePerson(c.figs[i], p, c.sim, c.sim.nInside ? a : 1, CABIN_Z[k], dtFrame, renderT));
+    openLids(c);
+  });
+
+  for (const [k, c] of world.cabins.entries()) {
+    const key = k === 0 ? "a" : "b";
+    $(`clock-${key}`).textContent = fmtTime(c.sim.time);
+    $(`out-${key}`).textContent = `${c.sim.pax.length - c.sim.nInside}/${c.sim.pax.length}`;
+    placeTag($(`tag-${key}`), -1.2, 2.6, CABIN_Z[k]);
+  }
+
+  if (camTween) {
+    camTween.t = Math.min(1, camTween.t + dtFrame / 1.2);
+    const e = smooth(camTween.t);
+    camera.position.lerpVectors(camTween.from.pos, camTween.to.pos, e);
+    controls.target.lerpVectors(camTween.from.target, camTween.to.target, e);
+    if (camTween.t >= 1) camTween = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+// ---------------------------------------------------------------------------
+// Wiring
+// ---------------------------------------------------------------------------
+function restart(keepCamera) {
+  build();
+  if (!keepCamera) cameraPreset($("camera").value, true);
+  if (!playing) {                     // paused or reduced motion: show a moment mid-way
+    for (let i = 0; i < 600 && !allOut(); i++) stepWorld();
+  }
+}
+$("play").addEventListener("click", () => {
+  if (allOut()) { playing = true; restart(true); }
+  else playing = !playing;
+  $("play").textContent = playing ? "Pausar" : "Reproducir";
+});
+$("restart").addEventListener("click", () => { playing = true; $("play").textContent = "Pausar"; restart(true); });
+$("newplane").addEventListener("click", () => {
+  $("seed").value = Math.floor(Math.random() * 4294967296);
+  playing = true; $("play").textContent = "Pausar";
+  restart(true);
+});
+$("seed").addEventListener("change", () => restart(true));
+$("rows").addEventListener("change", () => { restart(false); });
+$("camera").addEventListener("change", () => cameraPreset($("camera").value, false));
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+applyTheme();
+restart(false);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
