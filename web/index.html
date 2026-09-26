@@ -106,6 +106,8 @@
     background: var(--accent); border-radius: 7px; padding: 8px 14px; text-decoration: none;
   }
   .cta:hover { filter: brightness(1.08); }
+  .cta.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; }
 
   section { display: flex; flex-direction: column; gap: 14px; }
   .section-head { display: flex; flex-direction: column; gap: 4px; }
@@ -204,7 +206,8 @@
       sentados esperaran un hueco real, aprovechando la espera para sacar sus cosas.
       Los dos aviones llevan exactamente los mismos pasajeros; solo cambia esa regla.
     </p>
-    <p><a class="cta" href="cabin3d.html">Ver las dos cabinas en 3D →</a></p>
+    <p class="links"><a class="cta" href="cabin3d.html">Ver las dos cabinas en 3D →</a>
+      <a class="cta secondary" href="annotate.html">Aportar datos de un vídeo real</a></p>
   </header>
 
   <section aria-label="Simulación en directo">

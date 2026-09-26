@@ -996,12 +996,23 @@ def add_model_args(parser: argparse.ArgumentParser) -> None:
     g.add_argument("--p_prefetch", type=float, default=None,
                    help="Share taking the bag down in the row (default: 0.8)")
     g.add_argument("--door_headway", type=float, default=None, help="Seconds between exits (default: 1.0)")
+    g.add_argument("--config", metavar="FILE",
+                   help="JSON file of parameter overrides, e.g. written by calibrate.py")
     g.add_argument("--set", action="append", default=[], metavar="NAME=JSON",
                    help="Override any parameter, e.g. --set bag_length=0.4 (see `params`)")
 
 
+def load_config(path: str, base: Config | None = None) -> Config:
+    """Apply a JSON object of parameter overrides to `base`."""
+    cfg = base or Config()
+    with open(path) as f:
+        for name, value in json.load(f).items():
+            cfg = parse_override(cfg, f"{name}={json.dumps(value)}")
+    return cfg
+
+
 def config_from_args(args) -> Config:
-    cfg = Config()
+    cfg = load_config(args.config) if args.config else Config()
     for name in ("rows", "p_occupancy", "p_bag", "p_prefetch", "door_headway"):
         value = getattr(args, name)
         if value is not None:

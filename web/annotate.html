@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anotador de desembarques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #eef1f5;
+    --surface: #ffffff;
+    --surface-2: #f6f8fa;
+    --ink: #141b26;
+    --ink-2: #4a5566;
+    --muted: #6f7a8b;
+    --line: #d6dce4;
+    --line-2: #e6eaef;
+    --accent: #1f3a68;
+    --accent-ink: #ffffff;
+    --seat: #dfe4eb;
+    --seat-some: #9fd9c1;
+    --seat-out: #b9c2ce;
+    --sel: #2a78d6;
+    --good: #1a8a5f;
+    --warn: #a86a00;
+    --focus: #2a78d6;
+    --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+    --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0f141b; --surface: #171e28; --surface-2: #1c2430; --ink: #e8edf3; --ink-2: #aeb8c6;
+      --muted: #818c9c; --line: #2c3644; --line-2: #232c38; --accent: #9db8e8; --accent-ink: #0f141b;
+      --seat: #273241; --seat-some: #1f6b50; --seat-out: #3a4555; --sel: #3987e5; --good: #3fc08c;
+      --warn: #e0a33a; --focus: #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0f141b; --surface: #171e28; --surface-2: #1c2430; --ink: #e8edf3; --ink-2: #aeb8c6;
+    --muted: #818c9c; --line: #2c3644; --line-2: #232c38; --accent: #9db8e8; --accent-ink: #0f141b;
+    --seat: #273241; --seat-some: #1f6b50; --seat-out: #3a4555; --sel: #3987e5; --good: #3fc08c;
+    --warn: #e0a33a; --focus: #3987e5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--font-body);
+    padding-inline: 16px; padding-block: 20px 48px; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+  h1 { font: 600 2rem/1 var(--font-display); margin: 0; }
+  h2 { font: 600 1.15rem/1.1 var(--font-display); margin: 0; letter-spacing: 0.01em; }
+  header p { margin: 0; color: var(--ink-2); max-width: 80ch; }
+  header a { color: var(--ink-2); }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  @media (max-width: 980px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .col { display: flex; flex-direction: column; gap: 16px; }
+
+  button, select, input, textarea {
+    font: inherit; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 7px; padding: 6px 10px;
+  }
+  button { cursor: pointer; font-weight: 500; min-height: 34px; }
+  button:hover { border-color: var(--ink-2); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  label.field { display: flex; flex-direction: column; gap: 3px; font-size: 0.8rem; color: var(--ink-2); }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+
+  .drop { border: 2px dashed var(--line); border-radius: 10px; padding: 28px; text-align: center; color: var(--ink-2);
+    display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .drop.over { border-color: var(--sel); }
+  .pick { cursor: pointer; padding: 7px 14px; border-radius: 7px; background: var(--accent);
+    color: var(--accent-ink); font-weight: 600; }
+  video { width: 100%; max-height: 62vh; background: #000; border-radius: 8px; display: block; }
+  .transport { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .time { font: 500 1.05rem var(--font-mono); font-variant-numeric: tabular-nums; }
+  .sub { color: var(--muted); font-size: 0.82rem; }
+
+  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .key { display: flex; align-items: center; gap: 8px; justify-content: flex-start; text-align: left; font-weight: 500; }
+  .key kbd { font: 500 0.8rem var(--font-mono); min-width: 1.7em; text-align: center; padding: 1px 5px;
+    border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--surface-2); }
+  .key small { display: block; color: var(--muted); font-weight: 400; font-size: 0.75rem; }
+  .selected { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .seat-label { font: 600 1.6rem/1 var(--font-display); min-width: 3.2em; }
+
+  .seatmap-scroll { max-height: 420px; overflow: auto; }
+  .seatmap { display: grid; grid-template-columns: 2.4em repeat(3, 1fr) 1.2em repeat(3, 1fr); gap: 3px; font-size: 0.75rem; }
+  .seatmap .rn { color: var(--muted); font-family: var(--font-mono); text-align: right; padding-right: 4px; align-self: center; }
+  .seatmap button { min-height: 22px; padding: 0; border-radius: 4px; border: 1px solid transparent; background: var(--seat);
+    font: 500 0.7rem var(--font-mono); color: var(--ink-2); }
+  .seatmap button.some { background: var(--seat-some); color: var(--ink); }
+  .seatmap button.out { background: var(--seat-out); color: var(--ink-2); }
+  .seatmap button.sel { border-color: var(--sel); box-shadow: 0 0 0 2px var(--sel) inset; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line-2); font-variant-numeric: tabular-nums; }
+  th { color: var(--ink-2); font-weight: 600; font-size: 0.75rem; position: sticky; top: 0; background: var(--surface); }
+  td.num { font-family: var(--font-mono); }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover td { background: var(--surface-2); }
+  .log-scroll { max-height: 300px; overflow: auto; }
+  td button { min-height: 22px; padding: 0 6px; font-size: 0.75rem; }
+
+  .coverage { display: grid; grid-template-columns: 1fr auto; gap: 3px 12px; font-size: 0.82rem; }
+  .coverage .ok { color: var(--good); font-weight: 600; }
+  .coverage .low { color: var(--warn); }
+  textarea { width: 100%; min-height: 120px; font: 0.78rem/1.4 var(--font-mono); resize: vertical; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 10px 0 0; font-size: 0.85rem; }
+  details dt { font-family: var(--font-mono); color: var(--ink); }
+  details dd { margin: 0; color: var(--ink-2); }
+  .flash { color: var(--good); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Anotador de desembarques</h1>
+    <a href="index.html">Volver a la simulación</a>
+    <p>Marca en un vídeo real cuándo cada pasajero se levanta, sale al pasillo, saca su maleta y sale del avión. El CSV resultante lo convierte <code>calibrate.py</code> en los parámetros del modelo. El vídeo se reproduce en tu navegador y no se sube a ningún sitio.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="flight-title">
+        <h2 id="flight-title">Vuelo</h2>
+        <div class="fields" style="margin-top: 10px">
+          <label class="field" for="flight">Identificador
+            <input id="flight" value="vuelo-1" autocomplete="off"></label>
+          <label class="field" for="rows">Filas del avión
+            <input id="rows" type="number" min="4" max="60" value="30"></label>
+          <label class="field" for="aircraft">Avión
+            <input id="aircraft" placeholder="A320, 737-800…" autocomplete="off"></label>
+          <label class="field" for="camera">Cámara
+            <select id="camera">
+              <option value="front-looking-back">Delante, mirando atrás</option>
+              <option value="back-looking-front">Detrás, mirando a la puerta</option>
+              <option value="seat">Desde un asiento</option>
+            </select></label>
+          <label class="field" for="speedfactor">Factor de tiempo del vídeo
+            <input id="speedfactor" type="number" min="0.1" step="0.1" value="1"></label>
+          <label class="field" for="occupancy">Ocupación estimada
+            <input id="occupancy" type="number" min="0.1" max="1" step="0.05" value="1"></label>
+        </div>
+        <p class="sub" style="margin: 8px 0 0">El factor de tiempo es 1 para un vídeo normal; para un time-lapse, los segundos reales que dura cada segundo de vídeo.</p>
+      </section>
+
+      <section class="panel" aria-label="Vídeo">
+        <div class="drop" id="drop">
+          <strong>Arrastra aquí un vídeo del desembarque</strong>
+          <span>o</span>
+          <label for="file" class="pick">Elegir vídeo…</label>
+          <input id="file" type="file" accept="video/*" hidden>
+          <span class="sub">Sirve cualquier vídeo en el que se vea el pasillo: grabado desde tu asiento, por la tripulación o descargado.</span>
+        </div>
+        <div id="player" hidden>
+          <video id="video" playsinline preload="auto"></video>
+          <div class="transport" style="margin-top: 8px">
+            <button id="play" class="primary" type="button">Reproducir</button>
+            <button id="back5" type="button" title="Atrás 5 s (Shift + ←)">−5 s</button>
+            <button id="back1" type="button" title="Atrás 1 s (←)">−1 s</button>
+            <button id="fwd1" type="button" title="Adelante 1 s (→)">+1 s</button>
+            <button id="fwd5" type="button" title="Adelante 5 s (Shift + →)">+5 s</button>
+            <label class="sub" for="rate">Velocidad
+              <select id="rate"><option>0.25</option><option>0.5</option><option selected>1</option><option>1.5</option><option>2</option><option>4</option></select></label>
+            <span class="time" id="time">0:00.0</span>
+            <span class="sub" id="realtime"></span>
+          </div>
+          <p class="sub" id="video-error" hidden></p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="keys-title">
+        <div class="selected">
+          <h2 id="keys-title">Pasajero</h2>
+          <span class="seat-label" id="seat-label">—</span>
+          <span class="sub">Elige asiento en el mapa o teclea fila y letra (por ejemplo <kbd>1</kbd><kbd>2</kbd><kbd>c</kbd>).</span>
+          <label class="field" for="bin" style="flex-direction:row;align-items:center;gap:6px">Fila del compartimento
+            <input id="bin" type="number" min="1" max="60" style="width:70px"></label>
+        </div>
+        <div class="keys" id="keys" style="margin-top: 10px"></div>
+        <p class="sub" style="margin: 8px 0 0"><kbd>Espacio</kbd> reproducir o pausar · <kbd>←</kbd><kbd>→</kbd> 1 s · <kbd>Shift</kbd>+flecha 5 s · <kbd>,</kbd><kbd>.</kbd> un fotograma · <kbd>Retroceso</kbd> borra la última marca · <span id="flash" class="flash"></span></p>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="map-title">
+        <h2 id="map-title">Asientos</h2>
+        <p class="sub" style="margin: 4px 0 8px">Verde: con alguna marca. Gris: ya ha salido. No hace falta anotar a todo el pasaje; basta con seguir bien a unos cuantos.</p>
+        <div class="seatmap-scroll"><div class="seatmap" id="seatmap"></div></div>
+      </section>
+
+      <section class="panel" aria-labelledby="cov-title">
+        <h2 id="cov-title">Qué se puede estimar ya</h2>
+        <p class="sub" style="margin: 4px 0 8px">Muestras por parámetro; <code>calibrate.py</code> necesita al menos 8, sumando todos los vuelos.</p>
+        <div class="coverage" id="coverage"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="log-title">
+        <div class="row" style="justify-content: space-between">
+          <h2 id="log-title">Marcas (<span id="count">0</span>)</h2>
+          <span class="sub">Clic en una fila para ir a ese momento</span>
+        </div>
+        <div class="log-scroll" style="margin-top: 8px">
+          <table>
+            <thead><tr><th>Tiempo real</th><th>Asiento</th><th>Evento</th><th>Valor</th><th></th></tr></thead>
+            <tbody id="log"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="export-title">
+        <h2 id="export-title">Exportar</h2>
+        <p class="sub" style="margin: 4px 0 8px">Copia el CSV y guárdalo como <code>nombre.csv</code>; luego <code>python calibrate.py nombre.csv --out calibrado.json</code>. También puedes pegar aquí un CSV anterior y cargarlo para seguir.</p>
+        <textarea id="csv" spellcheck="false" aria-label="CSV de anotaciones"></textarea>
+        <div class="row" style="margin-top: 8px">
+          <button id="copy" class="primary" type="button">Copiar CSV</button>
+          <button id="load" type="button">Cargar CSV pegado</button>
+          <button id="clear" type="button">Empezar de cero</button>
+          <span class="flash" id="export-msg"></span>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel">
+    <details>
+      <summary>Qué significa cada marca</summary>
+      <dl id="defs"></dl>
+      <p class="sub" style="margin-top: 10px">Privacidad: no publiques vídeos en los que se reconozca a pasajeros. El CSV solo contiene tiempos y números de asiento, así que es anónimo.</p>
+    </details>
+  </section>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+
+// Events: key, csv name, label, definition.  Keep in sync with calibrate.py.
+const EVENTS = [
+  { key: "I", ev: "belt_off", label: "Se apaga la señal", global: true,
+    def: "Se apaga la señal de cinturones: el momento cero del desembarque." },
+  { key: "L", ev: "stand", label: "Se levanta",
+    def: "Empieza a levantarse de su asiento." },
+  { key: "B", ev: "edge", label: "En el borde",
+    def: "Está de pie en su fila, junto al pasillo, listo para salir." },
+  { key: "P", ev: "step_in", label: "Pisa el pasillo",
+    def: "Pone el primer pie en el pasillo." },
+  { key: "C", ev: "let_in", label: "Le ceden el paso",
+    def: "Alguien que iba por el pasillo se paró para dejarle salir." },
+  { key: "N", ev: "no_let_in", label: "No le ceden",
+    def: "Venía alguien por el pasillo y no se paró (tuvo que esperar un hueco o se coló)." },
+  { key: "A", ev: "bin_open", label: "Abre el compartimento", withBin: true,
+    def: "Abre o mete la mano en el compartimento superior. Se guarda la fila del compartimento." },
+  { key: "S", ev: "bag_down", label: "Maleta abajo",
+    def: "Tiene la maleta fuera del compartimento: en la mano o en el suelo." },
+  { key: "V", ev: "back", label: "Vuelve atrás",
+    def: "Empieza a caminar hacia atrás, contra la corriente, para llegar a su maleta." },
+  { key: "E", ev: "walk", label: "Echa a andar",
+    def: "Empieza a caminar hacia la puerta." },
+  { key: "X", ev: "exit", label: "Sale del avión",
+    def: "Cruza la puerta." },
+  { key: "U", ev: "door", label: "Alguien sale", global: true,
+    def: "Cruza la puerta alguien a quien no estás siguiendo. Sirve para el ritmo de la puerta y la curva de salidas." },
+];
+const BY_KEY = Object.fromEntries(EVENTS.map((e) => [e.key, e]));
+const LABEL = Object.fromEntries(EVENTS.map((e) => [e.ev, e.label]));
+
+// ---- state -----------------------------------------------------------------
+let marks = [];            // { t, who, event, value }
+let selected = null;       // "12C"
+const STORE = "deboarding-annotator:";
+
+function rows() { return Math.max(4, Math.min(60, Number($("rows").value) || 30)); }
+function factor() { return Math.max(0.01, Number($("speedfactor").value) || 1); }
+function realTime(videoT) { return videoT * factor(); }
+const fmt = (s) => {
+  const neg = s < 0; s = Math.abs(s);
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return `${neg ? "−" : ""}${m}:${r.toFixed(1).padStart(4, "0")}`;
+};
+
+function save() {
+  try {
+    localStorage.setItem(STORE + $("flight").value, JSON.stringify({
+      marks, rows: rows(), aircraft: $("aircraft").value, camera: $("camera").value,
+      speedfactor: factor(), occupancy: $("occupancy").value,
+    }));
+    localStorage.setItem(STORE + "last", $("flight").value);
+  } catch (e) { /* storage unavailable: keep working in memory */ }
+}
+function restore(id) {
+  try {
+    const raw = localStorage.getItem(STORE + id);
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    marks = d.marks || [];
+    $("rows").value = d.rows || 30;
+    $("aircraft").value = d.aircraft || "";
+    $("camera").value = d.camera || "front-looking-back";
+    $("speedfactor").value = d.speedfactor || 1;
+    $("occupancy").value = d.occupancy || 1;
+    return true;
+  } catch (e) { return false; }
+}
+
+// ---- video -----------------------------------------------------------------
+const video = $("video");
+let videoURL = null;
+function openFile(file) {
+  if (!file) return;
+  if (videoURL) URL.revokeObjectURL(videoURL);
+  videoURL = URL.createObjectURL(file);
+  video.src = videoURL;
+  $("drop").hidden = true;
+  $("player").hidden = false;
+  $("video-error").hidden = true;
+  if ($("flight").value === "vuelo-1" && !marks.length) $("flight").value = file.name.replace(/\.[^.]+$/, "");
+}
+$("file").addEventListener("change", (e) => openFile(e.target.files[0]));
+const drop = $("drop");
+drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); openFile(e.dataTransfer.files[0]); });
+video.addEventListener("error", () => {
+  $("video-error").hidden = false;
+  $("video-error").textContent = "El navegador no puede reproducir este vídeo aquí. Prueba con un MP4 (H.264), o abre web/annotate.html desde una copia local del repositorio.";
+});
+function seek(dt) { video.currentTime = Math.max(0, Math.min(video.duration || Infinity, video.currentTime + dt)); }
+function togglePlay() { if (!video.src) return; video.paused ? video.play() : video.pause(); }
+$("play").addEventListener("click", togglePlay);
+$("back5").addEventListener("click", () => seek(-5));
+$("back1").addEventListener("click", () => seek(-1));
+$("fwd1").addEventListener("click", () => seek(1));
+$("fwd5").addEventListener("click", () => seek(5));
+$("rate").addEventListener("change", () => { video.playbackRate = Number($("rate").value); });
+video.addEventListener("play", () => { $("play").textContent = "Pausar"; });
+video.addEventListener("pause", () => { $("play").textContent = "Reproducir"; });
+function tick() {
+  $("time").textContent = fmt(video.currentTime || 0);
+  const t0 = marks.find((m) => m.event === "belt_off");
+  $("realtime").textContent = t0 ? `${fmt(realTime(video.currentTime || 0) - t0.t)} desde la señal` : "";
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// ---- seat map ----------------------------------------------------------------
+function buildSeatmap() {
+  const map = $("seatmap");
+  map.innerHTML = "";
+  for (let r = 1; r <= rows(); r++) {
+    const rn = document.createElement("span");
+    rn.className = "rn"; rn.textContent = r;
+    map.appendChild(rn);
+    for (const c of "ABC_DEF") {
+      if (c === "_") { map.appendChild(document.createElement("span")); continue; }
+      const b = document.createElement("button");
+      b.type = "button"; b.textContent = c; b.dataset.seat = `${r}${c}`;
+      b.setAttribute("aria-label", `Asiento ${r}${c}`);
+      b.addEventListener("click", () => select(`${r}${c}`));
+      map.appendChild(b);
+    }
+  }
+  paintSeats();
+}
+function paintSeats() {
+  const seen = new Set(marks.map((m) => m.who));
+  const out = new Set(marks.filter((m) => m.event === "exit").map((m) => m.who));
+  for (const b of $("seatmap").querySelectorAll("button")) {
+    const s = b.dataset.seat;
+    b.classList.toggle("some", seen.has(s) && !out.has(s));
+    b.classList.toggle("out", out.has(s));
+    b.classList.toggle("sel", s === selected);
+  }
+}
+function select(seat) {
+  selected = seat;
+  $("seat-label").textContent = seat;
+  $("bin").value = parseInt(seat, 10);
+  paintSeats();
+  const b = $("seatmap").querySelector(`[data-seat="${seat}"]`);
+  b?.scrollIntoView({ block: "nearest" });
+}
+
+// ---- marking -----------------------------------------------------------------
+function flash(text) { $("flash").textContent = text; clearTimeout(flash.t); flash.t = setTimeout(() => { $("flash").textContent = ""; }, 1600); }
+
+function mark(e) {
+  if (!video.src) { flash("Carga primero un vídeo"); return; }
+  if (!e.global && !selected) { flash("Elige primero un asiento"); return; }
+  const m = { t: +realTime(video.currentTime).toFixed(2), who: e.global ? "" : selected, event: e.ev, value: "" };
+  if (e.withBin) m.value = String(Number($("bin").value) || parseInt(selected, 10));
+  marks.push(m);
+  marks.sort((a, b) => a.t - b.t);
+  flash(`${m.who || "vuelo"} · ${e.label} · ${fmt(m.t)}`);
+  changed();
+}
+// every mark gets an increasing number when added, so "undo" removes the
+// most recent one even though the list is kept sorted by video time
+let addCounter = 0;
+function undo() {
+  const last = marks.reduce((a, b) => (a === null || (b._n || 0) > (a._n || 0) ? b : a), null);
+  if (!last) return;
+  marks.splice(marks.indexOf(last), 1);
+  flash(`Borrada: ${last.who || "vuelo"} · ${LABEL[last.event]}`);
+  changed();
+}
+
+function renderKeys() {
+  $("keys").innerHTML = "";
+  for (const e of EVENTS) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "key";
+    b.innerHTML = `<kbd>${e.key}</kbd><span>${e.label}<small>${e.global ? "del vuelo" : "del pasajero"}</small></span>`;
+    b.addEventListener("click", () => mark(e));
+    $("keys").appendChild(b);
+  }
+  $("defs").innerHTML = EVENTS.map((e) => `<dt>${e.key} · ${e.ev}</dt><dd>${e.def}</dd>`).join("");
+}
+
+// seat typing: digits, then a letter A-F
+let seatBuffer = "", seatTimer = null;
+document.addEventListener("keydown", (e) => {
+  const tag = e.target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    if (e.key === "Escape") e.target.blur();
+    return;
+  }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key;
+  if (k === " ") { e.preventDefault(); togglePlay(); return; }
+  if (k === "ArrowLeft") { e.preventDefault(); seek(e.shiftKey ? -5 : -1); return; }
+  if (k === "ArrowRight") { e.preventDefault(); seek(e.shiftKey ? 5 : 1); return; }
+  if (k === ",") { video.pause(); seek(-1 / 30); return; }
+  if (k === ".") { video.pause(); seek(1 / 30); return; }
+  if (k === "Backspace") { e.preventDefault(); undo(); return; }
+  if (/^[0-9]$/.test(k)) {
+    seatBuffer += k;
+    clearTimeout(seatTimer);
+    seatTimer = setTimeout(() => { seatBuffer = ""; }, 1500);
+    flash(`Asiento ${seatBuffer}…`);
+    return;
+  }
+  const up = k.toUpperCase();
+  if (seatBuffer && /^[A-F]$/.test(up)) {
+    const r = Number(seatBuffer);
+    seatBuffer = "";
+    if (r >= 1 && r <= rows()) select(`${r}${up}`);
+    return;
+  }
+  if (BY_KEY[up]) { e.preventDefault(); mark(BY_KEY[up]); }
+});
+
+// ---- log, coverage, csv --------------------------------------------------------
+function changed() {
+  for (const m of marks) if (m._n !== undefined && m._n > addCounter) addCounter = m._n;
+  for (const m of marks) if (m._n === undefined) m._n = ++addCounter;
+  $("count").textContent = marks.length;
+  $("log").innerHTML = marks.map((m, i) =>
+    `<tr class="clickable" data-i="${i}"><td class="num">${fmt(m.t)}</td><td>${m.who || "—"}</td>` +
+    `<td>${LABEL[m.event] || m.event}</td><td class="num">${m.value}</td>` +
+    `<td><button type="button" data-del="${i}" aria-label="Borrar marca">Borrar</button></td></tr>`).join("");
+  paintSeats();
+  renderCoverage();
+  $("csv").value = toCSV();
+  save();
+}
+$("log").addEventListener("click", (e) => {
+  const del = e.target.closest("[data-del]");
+  if (del) { marks.splice(Number(del.dataset.del), 1); changed(); return; }
+  const tr = e.target.closest("tr[data-i]");
+  if (tr && video.src) video.currentTime = marks[Number(tr.dataset.i)].t / factor();
+});
+
+function renderCoverage() {
+  const people = {};
+  for (const m of marks) if (m.who) (people[m.who] ||= {})[m.event] ??= m;
+  const belt = marks.find((m) => m.event === "belt_off");
+  const n = { prep: 0, stand: 0, bag: 0, bins: 0, steps: 0, lets: 0, exits: 0 };
+  for (const [who, e] of Object.entries(people)) {
+    const aisleSeat = /[CD]$/.test(who);
+    if (belt && e.stand && aisleSeat) n.prep++;
+    if (e.stand && e.edge && aisleSeat) n.stand++;
+    if (e.bin_open && e.bag_down) n.bag++;
+    if (e.bin_open && e.bin_open.value) n.bins++;
+    if (e.step_in) n.steps++;
+    if (e.let_in || e.no_let_in) n.lets++;
+  }
+  n.exits = Math.max(0, marks.filter((m) => m.event === "exit" || m.event === "door").length - 1);
+  const rowsCov = [
+    ["Tiempo de sacar la maleta", n.bag], ["Dónde está su maleta", n.bins],
+    ["Ceden el paso o no", n.lets], ["Ritmo de la puerta", n.exits],
+    ["Llevan maleta arriba", n.steps], ["Preparación sentado (pasillo)", n.prep],
+    ["Levantarse (pasillo)", n.stand],
+  ];
+  $("coverage").innerHTML = rowsCov.map(([label, v]) =>
+    `<span>${label}</span><span class="${v >= 8 ? "ok" : "low"}">${v}${v >= 8 ? " ✓" : " / 8"}</span>`).join("");
+}
+
+function meta() {
+  return [
+    ["rows", rows()], ["aircraft", $("aircraft").value], ["camera", $("camera").value],
+    ["speed_factor", factor()], ["occupancy", $("occupancy").value],
+  ].filter(([, v]) => v !== "");
+}
+function csvCell(s) { s = String(s ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
+function toCSV() {
+  const id = $("flight").value || "vuelo";
+  const lines = ["video,t,who,event,value,note"];
+  for (const [k, v] of meta()) lines.push([id, 0, "", "meta", `${k}=${v}`, ""].map(csvCell).join(","));
+  for (const m of marks) lines.push([id, m.t, m.who, m.event, m.value, ""].map(csvCell).join(","));
+  return lines.join("\n") + "\n";
+}
+function fromCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const head = lines.shift().split(",");
+  const col = (name) => head.indexOf(name);
+  const out = [];
+  for (const line of lines) {
+    const cells = line.match(/("([^"]|"")*"|[^,]*)(,|$)/g).map((c) => c.replace(/,$/, "").replace(/^"|"$/g, "").replace(/""/g, '"'));
+    const ev = cells[col("event")];
+    if (ev === "meta") {
+      const [k, v] = cells[col("value")].split("=");
+      if (k === "rows") $("rows").value = v;
+      if (k === "aircraft") $("aircraft").value = v;
+      if (k === "camera") $("camera").value = v;
+      if (k === "speed_factor") $("speedfactor").value = v;
+      if (k === "occupancy") $("occupancy").value = v;
+      continue;
+    }
+    if (!LABEL[ev]) throw new Error(`evento desconocido: ${ev}`);
+    out.push({ t: Number(cells[col("t")]), who: cells[col("who")], event: ev, value: cells[col("value")] });
+    if (cells[col("video")]) $("flight").value = cells[col("video")];
+  }
+  return out;
+}
+
+$("copy").addEventListener("click", async () => {
+  const text = toCSV();
+  try { await navigator.clipboard.writeText(text); $("export-msg").textContent = "Copiado"; }
+  catch (e) { $("csv").focus(); $("csv").select(); $("export-msg").textContent = "Selecciona el texto y cópialo"; }
+  setTimeout(() => { $("export-msg").textContent = ""; }, 2000);
+});
+$("load").addEventListener("click", () => {
+  try { marks = fromCSV($("csv").value); buildSeatmap(); changed(); $("export-msg").textContent = `${marks.length} marcas cargadas`; }
+  catch (e) { $("export-msg").textContent = `No se ha podido leer: ${e.message}`; }
+});
+let confirmClear = false;
+$("clear").addEventListener("click", () => {
+  if (!confirmClear) { confirmClear = true; $("clear").textContent = "Pulsa otra vez para borrarlo todo"; setTimeout(() => { confirmClear = false; $("clear").textContent = "Empezar de cero"; }, 3000); return; }
+  confirmClear = false; $("clear").textContent = "Empezar de cero";
+  marks = []; changed();
+});
+$("rows").addEventListener("change", () => { buildSeatmap(); save(); });
+for (const id of ["aircraft", "camera", "speedfactor", "occupancy"]) $(id).addEventListener("change", changed);
+$("flight").addEventListener("change", () => { if (!restore($("flight").value)) marks = []; buildSeatmap(); changed(); });
+
+// ---- start ---------------------------------------------------------------------
+try { const last = localStorage.getItem(STORE + "last"); if (last) { $("flight").value = last; restore(last); } } catch (e) {}
+renderKeys();
+buildSeatmap();
+changed();
+</script>
+</body>
+</html>

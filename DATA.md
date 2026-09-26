@@ -49,18 +49,51 @@ calibran solo con el tiempo total. Ninguno mide los tiempos microscópicos del d
 
 ## Cómo medirlo con vídeo
 
+### Herramienta y circuito
+
+1. Abre `web/annotate.html` (también enlazada desde la simulación), carga el vídeo y rellena
+   los datos del vuelo. El vídeo se reproduce en el navegador; no se sube a ningún sitio.
+2. Elige un pasajero en el mapa de asientos, o teclea fila y letra (`12c`), y marca sus
+   eventos con una tecla mientras avanzas el vídeo: `L` se levanta, `B` en el borde de la
+   fila, `P` pisa el pasillo, `C`/`N` le ceden o no el paso, `A` abre el compartimento (con
+   la fila del compartimento), `S` maleta abajo, `V` vuelve atrás, `E` echa a andar, `X` sale.
+   Del vuelo: `I` se apaga la señal de cinturones, `U` sale alguien a quien no sigues.
+3. Copia el CSV y calíbralo:
+   ```
+   python calibrate.py vuelo1.csv vuelo2.csv --out calibrado.json --validate
+   python simulate_deboarding.py --config calibrado.json
+   ```
+   `calibrate.py` solo cambia los parámetros con al menos 8 muestras (sumando vuelos) y deja
+   el resto como está, indicando cuántas muestras faltan.
+
+El circuito está comprobado con vuelos simulados: `python calibrate.py --synthetic 3` anota
+tres vuelos simulados con parámetros conocidos y los recupera (mediana de `bag_time`
+7,1 s frente a 7,3 s; `p_prefetch` 0,78 frente a 0,80; `p_bag` 0,66 frente a 0,65).
+Tres detalles de medida que salieron de esa comprobación:
+
+- **Maleta abajo** es cuando sale del compartimento, aunque la persona siga con ella en la
+  mano esperando sitio. Si alguien empieza a sacarla en la fila y la termina en el pasillo,
+  esa medida no se usa para `bag_time`.
+- **`p_prefetch`** solo se puede observar en quien espera en el borde al menos 3 s: si
+  alguien sale al pasillo sin esperar, no sabemos si la habría sacado desde la fila.
+- **`N` (no le ceden)** se marca solo si venía alguien por el pasillo. Si no venía nadie, no
+  se marca ni `C` ni `N`.
+
+### Qué grabar
+
 - **Fuente ideal**: un vídeo desde la parte delantera de la cabina mirando hacia atrás, o desde
   la última fila mirando hacia la puerta, con el desembarque completo. Hay bastantes en YouTube
   (por ejemplo, time-lapses de desembarque grabados por la tripulación); también sirve grabarlo
   uno mismo desde el asiento.
-- **Registro**: una fila por evento, con la marca de tiempo del vídeo:
-  `persona, fila, asiento, evento (se levanta / pisa el pasillo / abre el compartimento /
-  maleta en el suelo / empieza a andar / sale), fila del compartimento, ¿le cedieron el paso?`.
-- **Del registro a los parámetros**: los tiempos entre eventos dan directamente las tablas de
-  cuantiles; la proporción de "le cedieron el paso" estima `p_yield`; las salidas por minuto
-  en tramos con cola continua estiman `door_headway`.
-- **Validación**: con 2-3 vídeos completos se compara el tiempo total y la curva de salidas
-  acumuladas del modelo con la real, además del tiempo total medio.
+- **Caso de referencia**: el time-lapse de la tripulación de WestJet (vuelo Fort McMurray -
+  Calgary) muestra un desembarque de cortesía estricta, fila a fila, con pasajeros expertos.
+  Es un buen caso de validación para `p_yield = 1` si se conoce su factor de tiempo.
+- **No hace falta anotar a todo el pasaje**: seguir bien a 10-20 personas por vídeo, más
+  todas las salidas por la puerta (`U`), ya da muestras útiles.
+- **Validación**: con `--validate`, `calibrate.py` compara el tiempo total observado de cada
+  vuelo (desde la señal hasta la última salida) con la distribución del modelo calibrado.
+- **Privacidad**: no publiques vídeos en los que se reconozca a pasajeros. El CSV solo
+  contiene tiempos y números de asiento.
 
 ## Referencias
 
