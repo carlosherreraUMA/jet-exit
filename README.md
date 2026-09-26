@@ -76,3 +76,9 @@ node web/parity_test.js            # el port JS reproduce a Python bit a bit
 
 Tras cambiar el modelo: `python export_parity.py` regenera `web/data.js` (configuración por
 defecto y casos de referencia) y `node web/parity_test.js` comprueba la paridad.
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Carlos. Puedes usar, modificar y redistribuir el código libremente,
+siempre que conserves el aviso de copyright y la licencia. Si lo usas en un trabajo, artículo o
+presentación, se agradece una mención al proyecto.
