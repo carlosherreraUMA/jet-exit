@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Anotador de desembarques</title>
+<title>Deboarding Annotator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
@@ -124,53 +124,53 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Anotador de desembarques</h1>
-    <a href="index.html">Volver a la simulación</a>
-    <p>Marca en un vídeo real cuándo cada pasajero se levanta, sale al pasillo, saca su maleta y sale del avión. El CSV resultante lo convierte <code>calibrate.py</code> en los parámetros del modelo. El vídeo se reproduce en tu navegador y no se sube a ningún sitio.</p>
+    <h1>Deboarding annotator</h1>
+    <a href="index.html">Back to the simulation</a>
+    <p>Mark on a real video when each passenger stands up, steps into the aisle, takes their bag down and leaves the plane. <code>calibrate.py</code> turns the resulting CSV into model parameters. The video plays in your browser and is never uploaded.</p>
   </header>
 
   <div class="grid">
     <div class="col">
       <section class="panel" aria-labelledby="flight-title">
-        <h2 id="flight-title">Vuelo</h2>
+        <h2 id="flight-title">Flight</h2>
         <div class="fields" style="margin-top: 10px">
-          <label class="field" for="flight">Identificador
-            <input id="flight" value="vuelo-1" autocomplete="off"></label>
-          <label class="field" for="rows">Filas del avión
+          <label class="field" for="flight">Name
+            <input id="flight" value="flight-1" autocomplete="off"></label>
+          <label class="field" for="rows">Seat rows
             <input id="rows" type="number" min="4" max="60" value="30"></label>
-          <label class="field" for="aircraft">Avión
+          <label class="field" for="aircraft">Aircraft
             <input id="aircraft" placeholder="A320, 737-800…" autocomplete="off"></label>
-          <label class="field" for="camera">Cámara
+          <label class="field" for="camera">Camera
             <select id="camera">
-              <option value="front-looking-back">Delante, mirando atrás</option>
-              <option value="back-looking-front">Detrás, mirando a la puerta</option>
-              <option value="seat">Desde un asiento</option>
+              <option value="front-looking-back">Front, looking back</option>
+              <option value="back-looking-front">Back, looking at the door</option>
+              <option value="seat">From a seat</option>
             </select></label>
-          <label class="field" for="speedfactor">Factor de tiempo del vídeo
+          <label class="field" for="speedfactor">Video time factor
             <input id="speedfactor" type="number" min="0.1" step="0.1" value="1"></label>
-          <label class="field" for="occupancy">Ocupación estimada
+          <label class="field" for="occupancy">Estimated occupancy
             <input id="occupancy" type="number" min="0.1" max="1" step="0.05" value="1"></label>
         </div>
-        <p class="sub" style="margin: 8px 0 0">El factor de tiempo es 1 para un vídeo normal; para un time-lapse, los segundos reales que dura cada segundo de vídeo.</p>
+        <p class="sub" style="margin: 8px 0 0">The time factor is 1 for a normal video; for a time-lapse, the real seconds that each second of video covers.</p>
       </section>
 
-      <section class="panel" aria-label="Vídeo">
+      <section class="panel" aria-label="Video">
         <div class="drop" id="drop">
-          <strong>Arrastra aquí un vídeo del desembarque</strong>
-          <span>o</span>
-          <label for="file" class="pick">Elegir vídeo…</label>
+          <strong>Drop a video of a deboarding here</strong>
+          <span>or</span>
+          <label for="file" class="pick">Choose a video…</label>
           <input id="file" type="file" accept="video/*" hidden>
-          <span class="sub">Sirve cualquier vídeo en el que se vea el pasillo: grabado desde tu asiento, por la tripulación o descargado.</span>
+          <span class="sub">Any video where the aisle is visible works: filmed from your seat, by the crew, or downloaded.</span>
         </div>
         <div id="player" hidden>
           <video id="video" playsinline preload="auto"></video>
           <div class="transport" style="margin-top: 8px">
-            <button id="play" class="primary" type="button">Reproducir</button>
-            <button id="back5" type="button" title="Atrás 5 s (Shift + ←)">−5 s</button>
-            <button id="back1" type="button" title="Atrás 1 s (←)">−1 s</button>
-            <button id="fwd1" type="button" title="Adelante 1 s (→)">+1 s</button>
-            <button id="fwd5" type="button" title="Adelante 5 s (Shift + →)">+5 s</button>
-            <label class="sub" for="rate">Velocidad
+            <button id="play" class="primary" type="button">Play</button>
+            <button id="back5" type="button" title="Back 5 s (Shift + ←)">−5 s</button>
+            <button id="back1" type="button" title="Back 1 s (←)">−1 s</button>
+            <button id="fwd1" type="button" title="Forward 1 s (→)">+1 s</button>
+            <button id="fwd5" type="button" title="Forward 5 s (Shift + →)">+5 s</button>
+            <label class="sub" for="rate">Speed
               <select id="rate"><option>0.25</option><option>0.5</option><option selected>1</option><option>1.5</option><option>2</option><option>4</option></select></label>
             <span class="time" id="time">0:00.0</span>
             <span class="sub" id="realtime"></span>
@@ -181,51 +181,51 @@
 
       <section class="panel" aria-labelledby="keys-title">
         <div class="selected">
-          <h2 id="keys-title">Pasajero</h2>
+          <h2 id="keys-title">Passenger</h2>
           <span class="seat-label" id="seat-label">—</span>
-          <span class="sub">Elige asiento en el mapa o teclea fila y letra (por ejemplo <kbd>1</kbd><kbd>2</kbd><kbd>c</kbd>).</span>
-          <label class="field" for="bin" style="flex-direction:row;align-items:center;gap:6px">Fila del compartimento
+          <span class="sub">Pick a seat on the map, or type row and letter (for example <kbd>1</kbd><kbd>2</kbd><kbd>c</kbd>).</span>
+          <label class="field" for="bin" style="flex-direction:row;align-items:center;gap:6px">Bin row
             <input id="bin" type="number" min="1" max="60" style="width:70px"></label>
         </div>
         <div class="keys" id="keys" style="margin-top: 10px"></div>
-        <p class="sub" style="margin: 8px 0 0"><kbd>Espacio</kbd> reproducir o pausar · <kbd>←</kbd><kbd>→</kbd> 1 s · <kbd>Shift</kbd>+flecha 5 s · <kbd>,</kbd><kbd>.</kbd> un fotograma · <kbd>Retroceso</kbd> borra la última marca · <span id="flash" class="flash"></span></p>
+        <p class="sub" style="margin: 8px 0 0"><kbd>Space</kbd> play or pause · <kbd>←</kbd><kbd>→</kbd> 1 s · <kbd>Shift</kbd>+arrow 5 s · <kbd>,</kbd><kbd>.</kbd> one frame · <kbd>Backspace</kbd> removes the last mark · <span id="flash" class="flash"></span></p>
       </section>
     </div>
 
     <div class="col">
       <section class="panel" aria-labelledby="map-title">
-        <h2 id="map-title">Asientos</h2>
-        <p class="sub" style="margin: 4px 0 8px">Verde: con alguna marca. Gris: ya ha salido. No hace falta anotar a todo el pasaje; basta con seguir bien a unos cuantos.</p>
+        <h2 id="map-title">Seats</h2>
+        <p class="sub" style="margin: 4px 0 8px">Green: has some marks. Grey: already off the plane. There is no need to annotate everyone; following a few people carefully is enough.</p>
         <div class="seatmap-scroll"><div class="seatmap" id="seatmap"></div></div>
       </section>
 
       <section class="panel" aria-labelledby="cov-title">
-        <h2 id="cov-title">Qué se puede estimar ya</h2>
-        <p class="sub" style="margin: 4px 0 8px">Muestras por parámetro; <code>calibrate.py</code> necesita al menos 8, sumando todos los vuelos.</p>
+        <h2 id="cov-title">What can be estimated so far</h2>
+        <p class="sub" style="margin: 4px 0 8px">Samples per parameter; <code>calibrate.py</code> needs at least 8, across all flights.</p>
         <div class="coverage" id="coverage"></div>
       </section>
 
       <section class="panel" aria-labelledby="log-title">
         <div class="row" style="justify-content: space-between">
-          <h2 id="log-title">Marcas (<span id="count">0</span>)</h2>
-          <span class="sub">Clic en una fila para ir a ese momento</span>
+          <h2 id="log-title">Marks (<span id="count">0</span>)</h2>
+          <span class="sub">Click a row to jump to that moment</span>
         </div>
         <div class="log-scroll" style="margin-top: 8px">
           <table>
-            <thead><tr><th>Tiempo real</th><th>Asiento</th><th>Evento</th><th>Valor</th><th></th></tr></thead>
+            <thead><tr><th>Real time</th><th>Seat</th><th>Event</th><th>Value</th><th></th></tr></thead>
             <tbody id="log"></tbody>
           </table>
         </div>
       </section>
 
       <section class="panel" aria-labelledby="export-title">
-        <h2 id="export-title">Exportar</h2>
-        <p class="sub" style="margin: 4px 0 8px">Copia el CSV y guárdalo como <code>nombre.csv</code>; luego <code>python calibrate.py nombre.csv --out calibrado.json</code>. También puedes pegar aquí un CSV anterior y cargarlo para seguir.</p>
-        <textarea id="csv" spellcheck="false" aria-label="CSV de anotaciones"></textarea>
+        <h2 id="export-title">Export</h2>
+        <p class="sub" style="margin: 4px 0 8px">Copy the CSV and save it as <code>name.csv</code>; then run <code>python calibrate.py name.csv --out calibrated.json</code>. You can also paste an earlier CSV here and load it to carry on.</p>
+        <textarea id="csv" spellcheck="false" aria-label="Annotations CSV"></textarea>
         <div class="row" style="margin-top: 8px">
-          <button id="copy" class="primary" type="button">Copiar CSV</button>
-          <button id="load" type="button">Cargar CSV pegado</button>
-          <button id="clear" type="button">Empezar de cero</button>
+          <button id="copy" class="primary" type="button">Copy CSV</button>
+          <button id="load" type="button">Load pasted CSV</button>
+          <button id="clear" type="button">Start over</button>
           <span class="flash" id="export-msg"></span>
         </div>
       </section>
@@ -234,9 +234,9 @@
 
   <section class="panel">
     <details>
-      <summary>Qué significa cada marca</summary>
+      <summary>What each mark means</summary>
       <dl id="defs"></dl>
-      <p class="sub" style="margin-top: 10px">Privacidad: no publiques vídeos en los que se reconozca a pasajeros. El CSV solo contiene tiempos y números de asiento, así que es anónimo.</p>
+      <p class="sub" style="margin-top: 10px">Privacy: do not publish videos in which passengers can be recognised. The CSV only contains times and seat numbers, so it is anonymous.</p>
     </details>
   </section>
 </div>
@@ -247,30 +247,30 @@ const $ = (id) => document.getElementById(id);
 
 // Events: key, csv name, label, definition.  Keep in sync with calibrate.py.
 const EVENTS = [
-  { key: "I", ev: "belt_off", label: "Se apaga la señal", global: true,
-    def: "Se apaga la señal de cinturones: el momento cero del desembarque." },
-  { key: "L", ev: "stand", label: "Se levanta",
-    def: "Empieza a levantarse de su asiento." },
-  { key: "B", ev: "edge", label: "En el borde",
-    def: "Está de pie en su fila, junto al pasillo, listo para salir." },
-  { key: "P", ev: "step_in", label: "Pisa el pasillo",
-    def: "Pone el primer pie en el pasillo." },
-  { key: "C", ev: "let_in", label: "Le ceden el paso",
-    def: "Alguien que iba por el pasillo se paró para dejarle salir." },
-  { key: "N", ev: "no_let_in", label: "No le ceden",
-    def: "Venía alguien por el pasillo y no se paró (tuvo que esperar un hueco o se coló)." },
-  { key: "A", ev: "bin_open", label: "Abre el compartimento", withBin: true,
-    def: "Abre o mete la mano en el compartimento superior. Se guarda la fila del compartimento." },
-  { key: "S", ev: "bag_down", label: "Maleta abajo",
-    def: "Tiene la maleta fuera del compartimento: en la mano o en el suelo." },
-  { key: "V", ev: "back", label: "Vuelve atrás",
-    def: "Empieza a caminar hacia atrás, contra la corriente, para llegar a su maleta." },
-  { key: "E", ev: "walk", label: "Echa a andar",
-    def: "Empieza a caminar hacia la puerta." },
-  { key: "X", ev: "exit", label: "Sale del avión",
-    def: "Cruza la puerta." },
-  { key: "U", ev: "door", label: "Alguien sale", global: true,
-    def: "Cruza la puerta alguien a quien no estás siguiendo. Sirve para el ritmo de la puerta y la curva de salidas." },
+  { key: "O", ev: "belt_off", label: "Seatbelt sign off", global: true,
+    def: "The seatbelt sign goes off: time zero of the deboarding." },
+  { key: "S", ev: "stand", label: "Stands up",
+    def: "Starts getting up from the seat." },
+  { key: "E", ev: "edge", label: "At the row edge",
+    def: "Standing in their row next to the aisle, ready to step out." },
+  { key: "A", ev: "step_in", label: "Steps into the aisle",
+    def: "First foot in the aisle." },
+  { key: "Y", ev: "let_in", label: "Someone yields",
+    def: "Someone walking down the aisle stopped to let them out." },
+  { key: "N", ev: "no_let_in", label: "Nobody yields",
+    def: "Someone was coming down the aisle and did not stop (they had to wait for a gap, or cut in). Mark nothing if nobody was coming." },
+  { key: "B", ev: "bin_open", label: "Opens the bin", withBin: true,
+    def: "Opens or reaches into the overhead bin. The bin row is recorded." },
+  { key: "D", ev: "bag_down", label: "Bag down",
+    def: "The bag is out of the bin: in hand or on the floor." },
+  { key: "R", ev: "back", label: "Walks back",
+    def: "Starts walking back, against the flow, to reach their bag." },
+  { key: "W", ev: "walk", label: "Starts walking",
+    def: "Starts walking towards the door." },
+  { key: "X", ev: "exit", label: "Exits",
+    def: "Goes through the door." },
+  { key: "U", ev: "door", label: "Someone exits", global: true,
+    def: "Someone you are not following goes through the door. Used for the door rate and the exit curve." },
 ];
 const BY_KEY = Object.fromEntries(EVENTS.map((e) => [e.key, e]));
 const LABEL = Object.fromEntries(EVENTS.map((e) => [e.ev, e.label]));
@@ -324,7 +324,7 @@ function openFile(file) {
   $("drop").hidden = true;
   $("player").hidden = false;
   $("video-error").hidden = true;
-  if ($("flight").value === "vuelo-1" && !marks.length) $("flight").value = file.name.replace(/\.[^.]+$/, "");
+  if ($("flight").value === "flight-1" && !marks.length) $("flight").value = file.name.replace(/\.[^.]+$/, "");
 }
 $("file").addEventListener("change", (e) => openFile(e.target.files[0]));
 const drop = $("drop");
@@ -333,7 +333,7 @@ drop.addEventListener("dragleave", () => drop.classList.remove("over"));
 drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); openFile(e.dataTransfer.files[0]); });
 video.addEventListener("error", () => {
   $("video-error").hidden = false;
-  $("video-error").textContent = "El navegador no puede reproducir este vídeo aquí. Prueba con un MP4 (H.264), o abre web/annotate.html desde una copia local del repositorio.";
+  $("video-error").textContent = "The browser cannot play this video here. Try an MP4 (H.264), or open web/annotate.html from a local copy of the repository.";
 });
 function seek(dt) { video.currentTime = Math.max(0, Math.min(video.duration || Infinity, video.currentTime + dt)); }
 function togglePlay() { if (!video.src) return; video.paused ? video.play() : video.pause(); }
@@ -343,12 +343,12 @@ $("back1").addEventListener("click", () => seek(-1));
 $("fwd1").addEventListener("click", () => seek(1));
 $("fwd5").addEventListener("click", () => seek(5));
 $("rate").addEventListener("change", () => { video.playbackRate = Number($("rate").value); });
-video.addEventListener("play", () => { $("play").textContent = "Pausar"; });
-video.addEventListener("pause", () => { $("play").textContent = "Reproducir"; });
+video.addEventListener("play", () => { $("play").textContent = "Pause"; });
+video.addEventListener("pause", () => { $("play").textContent = "Play"; });
 function tick() {
   $("time").textContent = fmt(video.currentTime || 0);
   const t0 = marks.find((m) => m.event === "belt_off");
-  $("realtime").textContent = t0 ? `${fmt(realTime(video.currentTime || 0) - t0.t)} desde la señal` : "";
+  $("realtime").textContent = t0 ? `${fmt(realTime(video.currentTime || 0) - t0.t)} since the sign` : "";
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
@@ -365,7 +365,7 @@ function buildSeatmap() {
       if (c === "_") { map.appendChild(document.createElement("span")); continue; }
       const b = document.createElement("button");
       b.type = "button"; b.textContent = c; b.dataset.seat = `${r}${c}`;
-      b.setAttribute("aria-label", `Asiento ${r}${c}`);
+      b.setAttribute("aria-label", `Seat ${r}${c}`);
       b.addEventListener("click", () => select(`${r}${c}`));
       map.appendChild(b);
     }
@@ -395,13 +395,13 @@ function select(seat) {
 function flash(text) { $("flash").textContent = text; clearTimeout(flash.t); flash.t = setTimeout(() => { $("flash").textContent = ""; }, 1600); }
 
 function mark(e) {
-  if (!video.src) { flash("Carga primero un vídeo"); return; }
-  if (!e.global && !selected) { flash("Elige primero un asiento"); return; }
+  if (!video.src) { flash("Load a video first"); return; }
+  if (!e.global && !selected) { flash("Pick a seat first"); return; }
   const m = { t: +realTime(video.currentTime).toFixed(2), who: e.global ? "" : selected, event: e.ev, value: "" };
   if (e.withBin) m.value = String(Number($("bin").value) || parseInt(selected, 10));
   marks.push(m);
   marks.sort((a, b) => a.t - b.t);
-  flash(`${m.who || "vuelo"} · ${e.label} · ${fmt(m.t)}`);
+  flash(`${m.who || "flight"} · ${e.label} · ${fmt(m.t)}`);
   changed();
 }
 // every mark gets an increasing number when added, so "undo" removes the
@@ -411,7 +411,7 @@ function undo() {
   const last = marks.reduce((a, b) => (a === null || (b._n || 0) > (a._n || 0) ? b : a), null);
   if (!last) return;
   marks.splice(marks.indexOf(last), 1);
-  flash(`Borrada: ${last.who || "vuelo"} · ${LABEL[last.event]}`);
+  flash(`Removed: ${last.who || "flight"} · ${LABEL[last.event]}`);
   changed();
 }
 
@@ -420,7 +420,7 @@ function renderKeys() {
   for (const e of EVENTS) {
     const b = document.createElement("button");
     b.type = "button"; b.className = "key";
-    b.innerHTML = `<kbd>${e.key}</kbd><span>${e.label}<small>${e.global ? "del vuelo" : "del pasajero"}</small></span>`;
+    b.innerHTML = `<kbd>${e.key}</kbd><span>${e.label}<small>${e.global ? "flight" : "passenger"}</small></span>`;
     b.addEventListener("click", () => mark(e));
     $("keys").appendChild(b);
   }
@@ -447,7 +447,7 @@ document.addEventListener("keydown", (e) => {
     seatBuffer += k;
     clearTimeout(seatTimer);
     seatTimer = setTimeout(() => { seatBuffer = ""; }, 1500);
-    flash(`Asiento ${seatBuffer}…`);
+    flash(`Seat ${seatBuffer}…`);
     return;
   }
   const up = k.toUpperCase();
@@ -468,7 +468,7 @@ function changed() {
   $("log").innerHTML = marks.map((m, i) =>
     `<tr class="clickable" data-i="${i}"><td class="num">${fmt(m.t)}</td><td>${m.who || "—"}</td>` +
     `<td>${LABEL[m.event] || m.event}</td><td class="num">${m.value}</td>` +
-    `<td><button type="button" data-del="${i}" aria-label="Borrar marca">Borrar</button></td></tr>`).join("");
+    `<td><button type="button" data-del="${i}" aria-label="Remove mark">Remove</button></td></tr>`).join("");
   paintSeats();
   renderCoverage();
   $("csv").value = toCSV();
@@ -497,10 +497,10 @@ function renderCoverage() {
   }
   n.exits = Math.max(0, marks.filter((m) => m.event === "exit" || m.event === "door").length - 1);
   const rowsCov = [
-    ["Tiempo de sacar la maleta", n.bag], ["Dónde está su maleta", n.bins],
-    ["Ceden el paso o no", n.lets], ["Ritmo de la puerta", n.exits],
-    ["Llevan maleta arriba", n.steps], ["Preparación sentado (pasillo)", n.prep],
-    ["Levantarse (pasillo)", n.stand],
+    ["Time to take a bag down", n.bag], ["Where the bag is", n.bins],
+    ["Yielded to or not", n.lets], ["Door rate", n.exits],
+    ["Have an overhead bag", n.steps], ["Seated preparation (aisle seats)", n.prep],
+    ["Standing up (aisle seats)", n.stand],
   ];
   $("coverage").innerHTML = rowsCov.map(([label, v]) =>
     `<span>${label}</span><span class="${v >= 8 ? "ok" : "low"}">${v}${v >= 8 ? " ✓" : " / 8"}</span>`).join("");
@@ -514,7 +514,7 @@ function meta() {
 }
 function csvCell(s) { s = String(s ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; }
 function toCSV() {
-  const id = $("flight").value || "vuelo";
+  const id = $("flight").value || "flight";
   const lines = ["video,t,who,event,value,note"];
   for (const [k, v] of meta()) lines.push([id, 0, "", "meta", `${k}=${v}`, ""].map(csvCell).join(","));
   for (const m of marks) lines.push([id, m.t, m.who, m.event, m.value, ""].map(csvCell).join(","));
@@ -537,7 +537,7 @@ function fromCSV(text) {
       if (k === "occupancy") $("occupancy").value = v;
       continue;
     }
-    if (!LABEL[ev]) throw new Error(`evento desconocido: ${ev}`);
+    if (!LABEL[ev]) throw new Error(`unknown event: ${ev}`);
     out.push({ t: Number(cells[col("t")]), who: cells[col("who")], event: ev, value: cells[col("value")] });
     if (cells[col("video")]) $("flight").value = cells[col("video")];
   }
@@ -546,18 +546,18 @@ function fromCSV(text) {
 
 $("copy").addEventListener("click", async () => {
   const text = toCSV();
-  try { await navigator.clipboard.writeText(text); $("export-msg").textContent = "Copiado"; }
-  catch (e) { $("csv").focus(); $("csv").select(); $("export-msg").textContent = "Selecciona el texto y cópialo"; }
+  try { await navigator.clipboard.writeText(text); $("export-msg").textContent = "Copied"; }
+  catch (e) { $("csv").focus(); $("csv").select(); $("export-msg").textContent = "Select the text and copy it"; }
   setTimeout(() => { $("export-msg").textContent = ""; }, 2000);
 });
 $("load").addEventListener("click", () => {
-  try { marks = fromCSV($("csv").value); buildSeatmap(); changed(); $("export-msg").textContent = `${marks.length} marcas cargadas`; }
-  catch (e) { $("export-msg").textContent = `No se ha podido leer: ${e.message}`; }
+  try { marks = fromCSV($("csv").value); buildSeatmap(); changed(); $("export-msg").textContent = `${marks.length} marks loaded`; }
+  catch (e) { $("export-msg").textContent = `Could not read it: ${e.message}`; }
 });
 let confirmClear = false;
 $("clear").addEventListener("click", () => {
-  if (!confirmClear) { confirmClear = true; $("clear").textContent = "Pulsa otra vez para borrarlo todo"; setTimeout(() => { confirmClear = false; $("clear").textContent = "Empezar de cero"; }, 3000); return; }
-  confirmClear = false; $("clear").textContent = "Empezar de cero";
+  if (!confirmClear) { confirmClear = true; $("clear").textContent = "Click again to delete everything"; setTimeout(() => { confirmClear = false; $("clear").textContent = "Start over"; }, 3000); return; }
+  confirmClear = false; $("clear").textContent = "Start over";
   marks = []; changed();
 });
 $("rows").addEventListener("change", () => { buildSeatmap(); save(); });

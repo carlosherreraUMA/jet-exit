@@ -1,84 +1,84 @@
-# ¿Quién cede el pasillo?
+# Who yields the aisle?
 
-Simulación del desembarque de un avión de pasillo único (A320, 30 filas 3-3) para responder a
-una pregunta concreta: **¿saldríamos antes si quien ya está de pie en el pasillo no se parase
-a dejar salir a cada fila, y los que siguen sentados esperasen un hueco?**
+A simulation of deboarding a single-aisle aircraft (A320, 30 rows 3-3) to answer one question:
+**would we get off sooner if people already standing in the aisle did not stop to let each row
+out, and those still seated waited for a gap instead?**
 
-La regla es un único parámetro, `p_yield`: la probabilidad de que alguien que camina por el
-pasillo se pare a dejar salir a una fila. `1` es la cortesía habitual; `0`, el pasillo primero.
+The rule is a single parameter, `p_yield`: the probability that someone walking down the aisle
+stops to let a row out. `1` is the usual courtesy; `0` is aisle first.
 
-## Resultado actual
+## Current result
 
-Con 100 aviones simulados y los valores por defecto, la cortesía tarda 12:34 y el pasillo
-primero 6:48: la cortesía es un 85 % más lenta. La ventaja se mantiene en todos los parámetros
-probados y se reduce sobre todo si la puerta es lenta (3 s por pasajero: +35 %). Basta con que
-cedan el paso uno de cada diez para perder cerca de la mitad de la ventaja.
+Over 100 simulated planes with the default parameters, courtesy takes 12:34 and aisle first
+6:48: courtesy is 85% slower. The advantage holds for every parameter tested and shrinks mostly
+when the door is slow (3 s per passenger: +35%). If just one walker in ten yields, about half of
+the advantage is gone.
 
-Muchos parámetros son todavía estimaciones. El modelo está calibrado contra el ritmo total
-observado (15-17 pasajeros por minuto), pero faltan mediciones de detalle; ver [DATA.md](DATA.md)
-y la sección de datos más abajo.
+Many parameters are still estimates. The model is calibrated against the observed overall rate
+(15-17 passengers per minute), but detailed measurements are missing; see [DATA.md](DATA.md)
+and the data section below.
 
-## Qué hay aquí
+## What is here
 
-| Fichero | Qué es |
+| File | What it is |
 |---|---|
-| `simulate_deboarding.py` | El modelo y el CLI de Monte Carlo (Python, sin dependencias). |
-| `calibrate.py` | Convierte anotaciones de vídeos reales en parámetros del modelo y valida. |
-| `animate_deboarding.py` | Animación en la terminal de las dos reglas a la vez. |
-| `web/index.html` | Simulación en directo, curvas y Monte Carlo en el navegador. |
-| `web/cabin3d.html` | Las dos cabinas en 3D (three.js). |
-| `web/annotate.html` | Herramienta para anotar vídeos de desembarques reales. |
-| `web/model.js` | Port del modelo a JavaScript, idéntico bit a bit al de Python. |
-| `sweep.js` | Barrido de sensibilidad sobre el port JS (unas 20 veces más rápido). |
-| `DATA.md` | Fuentes, parámetros pendientes de medir y protocolo de medida. |
+| `simulate_deboarding.py` | The model and the Monte Carlo CLI (Python, no dependencies). |
+| `calibrate.py` | Turns annotations of real videos into model parameters, and validates. |
+| `animate_deboarding.py` | Terminal animation of both rules side by side. |
+| `web/index.html` | Live simulation, charts and an in-browser Monte Carlo. |
+| `web/cabin3d.html` | Both cabins in 3D (three.js). |
+| `web/annotate.html` | Tool to annotate videos of real deboardings. |
+| `web/model.js` | JavaScript port of the model, bit-identical to the Python one. |
+| `sweep.js` | Sensitivity sweep on the JS port (about 20x faster). |
+| `DATA.md` | Sources, parameters still to be measured, and the measurement protocol. |
 
-## Uso
+## Usage
 
 ```
-python simulate_deboarding.py --k 300 --seed 1        # cortesía frente a pasillo primero
-python simulate_deboarding.py params                  # todos los parámetros, con su fuente
-python simulate_deboarding.py --set p_bag=0.4          # cambiar cualquier parámetro
-python animate_deboarding.py --rows 12                # animación en la terminal
-node sweep.js --k 100 --csv sweep.csv                 # barrido de sensibilidad
+python simulate_deboarding.py --k 300 --seed 1        # courtesy against aisle first
+python simulate_deboarding.py params                  # every parameter, with its source
+python simulate_deboarding.py --set p_bag=0.4          # change any parameter
+python animate_deboarding.py --rows 12                # terminal animation
+node sweep.js --k 100 --csv sweep.csv                 # sensitivity sweep
 ```
 
-Para las páginas web basta con servir la carpeta `web/` (por ejemplo,
-`python -m http.server -d web`) y abrir `http://localhost:8000`.
+For the web pages, serve the `web/` folder (for example `python -m http.server -d web`) and
+open `http://localhost:8000`.
 
-## El modelo, en breve
+## The model in brief
 
-- Pasillo continuo en metros; cada persona tiene su profundidad de cuerpo, su velocidad y
-  aceleración limitada, y guarda distancia con quien tiene delante. Las colas arrancan en ola.
-- Dentro de la fila sale primero el de pasillo; los demás se levantan y se desplazan de lado.
-- Las maletas pueden estar encima de su fila, delante o detrás. Quien la tiene detrás y fuera de
-  su alcance espera a que se vacíe el pasillo, lo reserva y vuelve contra la corriente.
-- Todos los parámetros están en `Config`, con unidad, fuente y cómo medirlos. Las
-  distribuciones son tablas de cuantiles, para meter datos medidos tal cual.
+- A continuous aisle in metres. Each person has a body depth, a walking speed and limited
+  acceleration, and keeps a distance to the person ahead. Queues restart as a wave.
+- In each row the aisle seat leaves first; the others stand up and shuffle sideways.
+- Bags can be above the passenger's row, ahead of it or behind it. Someone whose bag is behind
+  and out of reach waits for the aisle to clear, reserves it and walks against the flow.
+- Every parameter lives in `Config`, with its unit, source and how to measure it.
+  Distributions are quantile tables, so measured data can be pasted in as they are.
 
-La descripción completa está al principio de `simulate_deboarding.py`.
+The full description is at the top of `simulate_deboarding.py`.
 
-## Aportar datos
+## Contributing data
 
-Lo que más mejoraría el modelo son mediciones de desembarques reales: cuánto se tarda en sacar
-una maleta, cuántos la sacan desde su fila, dónde está respecto a su asiento, cuándo se cede el
-paso. Si tienes un vídeo en el que se vea el pasillo:
+What would improve the model most is measurements of real deboardings: how long it takes to take
+a bag down, how many do it from their row, where the bag is relative to the seat, when people
+yield. If you have a video where the aisle is visible:
 
-1. Anótalo con `web/annotate.html` (el vídeo no sale de tu ordenador).
-2. Copia el CSV y comprueba qué se puede estimar: `python calibrate.py tu-vuelo.csv`.
-3. Aporta el CSV (no el vídeo): es anónimo, solo contiene tiempos y números de asiento.
+1. Annotate it with `web/annotate.html` (the video never leaves your computer).
+2. Copy the CSV and see what can be estimated: `python calibrate.py your-flight.csv`.
+3. Contribute the CSV (not the video): it is anonymous and only contains times and seat numbers.
 
 ## Tests
 
 ```
 python -m pytest test_simulation.py test_calibrate.py
-node web/parity_test.js            # el port JS reproduce a Python bit a bit
+node web/parity_test.js            # the JS port reproduces Python bit for bit
 ```
 
-Tras cambiar el modelo: `python export_parity.py` regenera `web/data.js` (configuración por
-defecto y casos de referencia) y `node web/parity_test.js` comprueba la paridad.
+After changing the model, `python export_parity.py` regenerates `web/data.js` (default
+configuration and reference runs), and `node web/parity_test.js` checks parity.
 
-## Licencia
+## License
 
-[MIT](LICENSE) © 2026 Carlos. Puedes usar, modificar y redistribuir el código libremente,
-siempre que conserves el aviso de copyright y la licencia. Si lo usas en un trabajo, artículo o
-presentación, se agradece una mención al proyecto.
+[MIT](LICENSE) © 2026 Carlos. You may use, modify and redistribute the code freely, as long as
+you keep the copyright notice and the license. If you use it in a piece of work, article or
+presentation, a mention of the project is appreciated.

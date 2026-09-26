@@ -1,101 +1,99 @@
-# Datos para calibrar el modelo
+# Data to calibrate the model
 
-Cada parámetro del modelo es un hueco para datos medidos. `python simulate_deboarding.py params`
-lista todos con su valor actual, su unidad, de dónde sale y cómo medirlo. Este documento recoge
-lo que dicen las fuentes encontradas y qué falta por medir.
+Every model parameter is a slot for measured data. `python simulate_deboarding.py params` lists
+them all with their current value, unit, where the value comes from and how to measure it. This
+document collects what the sources found so far say, and what is still missing.
 
-Las distribuciones se escriben como tablas de cuantiles `((p, valor), ...)`, así que una muestra
-medida se convierte directamente: se ordenan los valores y se toman, por ejemplo, los percentiles
-0, 5, 10, 25, 50, 75, 90, 95 y 100. Se cambian con `--set`, por ejemplo:
+Distributions are written as quantile tables `((p, value), ...)`, so a measured sample goes in
+directly: sort the values and take, for example, the 0, 5, 10, 25, 50, 75, 90, 95 and 100th
+percentiles. They are changed with `--set`, for example:
 
 ```
 python simulate_deboarding.py --set 'bag_time=[[0,2],[0.5,6],[0.9,12],[1,25]]'
 ```
 
-## Qué dicen las fuentes
+## What the sources say
 
-| Dato | Valor | Fuente | Uso en el modelo |
+| Quantity | Value | Source | Use in the model |
 |---|---|---|---|
-| Ritmo de desembarque por una puerta | 15-17 pax/min (media observada); 20 pax/min citado como media del sector | Wald, Harmon y Klabjan 2014, citado por CALM | Objetivo de calibración de la cortesía |
-| Tiempo total, A319/A320 con ≥ 80 % de ocupación | 6:27 a 13:00 min | Vink et al. 2019 (estudio de campo) | Rango de validación |
-| Tiempo total, A320 de 144 plazas | 8-10 min | CALM (Namilae et al.) citando datos observados | Rango de validación |
-| Guardar el equipaje al embarcar | Weibull, forma 1,7 y escala 16 s (media ≈ 14 s, 323 mediciones) | Schultz 2018, Aerospace 5(1):27 | Forma de `bag_time` (sacar suele ser más rápido que guardar) |
-| Bultos de mano por pasajero | 0 / 1 / 2 con 25 / 50 / 25 % | Schultz et al. 2023, JATM 106 | Orienta `p_bag` |
-| Velocidad libre en el pasillo | 0,8 m/s | Schultz et al. 2023 | Mediana de `walk_speed` |
-| Velocidad de peatón general | 1,1-1,3 m/s (σ 0,2) | CALM | Cota superior de `walk_speed` |
-| Sacar el equipaje al desembarcar | 5-12 s (supuesto, no medido) | CALM | Contraste de `bag_time` |
-| Maletas guardadas más atrás | Obligan a ir contra la corriente; es el cuello de botella principal | Vink et al. 2019 | Existencia de `bin_offsets` y la marcha atrás |
-| Ir sin equipaje de mano | −80 % de tiempo de desembarque | Vink et al. 2019 | Validación de la sensibilidad a `p_bag` |
+| Deboarding rate through one door | 15-17 pax/min (observed average); 20 pax/min quoted as the industry average | Wald, Harmon and Klabjan 2014, as cited by CALM | Calibration target for courtesy |
+| Total time, A319/A320 at ≥ 80% occupancy | 6:27 to 13:00 min | Vink et al. 2019 (field study) | Validation range |
+| Total time, 144-seat A320 | 8-10 min | CALM (Namilae et al.), citing observed data | Validation range |
+| Stowing hand luggage when boarding | Weibull, shape 1.7 and scale 16 s (mean ≈ 14 s, 323 measurements) | Schultz 2018, Aerospace 5(1):27 | Shape of `bag_time` (taking a bag down is usually faster than stowing it) |
+| Hand luggage items per passenger | 0 / 1 / 2 at 25 / 50 / 25% | Schultz et al. 2023, JATM 106 | Guides `p_bag` |
+| Free walking speed in the aisle | 0.8 m/s | Schultz et al. 2023 | Median of `walk_speed` |
+| General pedestrian speed | 1.1-1.3 m/s (σ 0.2) | CALM | Upper bound of `walk_speed` |
+| Taking luggage down when deboarding | 5-12 s (assumed, not measured) | CALM | Cross-check for `bag_time` |
+| Bags stored further back | Force people to walk against the flow; the main bottleneck | Vink et al. 2019 | Reason for `bin_offsets` and walking back |
+| No hand luggage | −80% deboarding time | Vink et al. 2019 | Check of the sensitivity to `p_bag` |
 
-Una observación importante: los modelos publicados que se han revisado (CALM, Wald et al.) se
-calibran solo con el tiempo total. Ninguno mide los tiempos microscópicos del desembarque
-(sacar la maleta, levantarse, huecos que se aceptan). Esos datos habría que obtenerlos.
+An important observation: the published models reviewed (CALM, Wald et al.) are calibrated on the
+total time only. None of them measures the detailed deboarding times (taking a bag down, standing
+up, which gaps people accept). Those data still have to be collected.
 
-## Qué falta medir, por orden de impacto
+## What still needs measuring, by impact
 
-1. **`bag_time`**: tiempo desde que se abre el compartimento hasta que la maleta está en el
-   suelo del pasillo. Es el parámetro que más pesa.
-2. **`p_prefetch`**: qué parte de los pasajeros con maleta la sacan antes de pisar el pasillo
-   (de pie en la fila) y qué parte ya en el pasillo.
-3. **`bin_offsets`**: fila del asiento frente a fila del compartimento donde está su maleta.
-4. **`door_headway`**: salidas por minuto cuando hay cola continua en la puerta. Decide cuánto
-   importa todo lo demás.
-5. **`p_yield`, `gap_distance`**: en qué proporción de filas el pasillo se detiene para
-   dejar salir, y qué huecos aceptan quienes salen sin que les cedan el paso.
-6. **`s0`, `headway`, `start_gap`, `body_depth`**: personas por metro en una cola parada y
-   ritmo al que se pone en marcha la cola (se mide contando cuánto tarda en moverse la
-   persona número N tras la primera).
-7. **`prep_time`, `stand_time`, `lateral_time`, `step_in_time`**: tiempos dentro de la fila.
+1. **`bag_time`**: time from opening the bin until the bag is out. This parameter weighs the most.
+2. **`p_prefetch`**: how many passengers with a bag take it down before stepping into the aisle
+   (standing in their row) and how many do it in the aisle.
+3. **`bin_offsets`**: seat row against the row of the bin holding their bag.
+4. **`door_headway`**: exits per minute while there is a continuous queue at the door. It decides
+   how much everything else matters.
+5. **`p_yield`, `gap_distance`**: in what share of rows the aisle stops to let people out, and
+   which gaps people accept when stepping out without being let in.
+6. **`s0`, `headway`, `start_gap`, `body_depth`**: people per metre in a stopped queue and how
+   fast a queue gets moving (measured as how long the Nth person takes to move after the first).
+7. **`prep_time`, `stand_time`, `lateral_time`, `step_in_time`**: times inside the row.
 
-## Cómo medirlo con vídeo
+## Measuring it on video
 
-### Herramienta y circuito
+### Tool and pipeline
 
-1. Abre `web/annotate.html` (también enlazada desde la simulación), carga el vídeo y rellena
-   los datos del vuelo. El vídeo se reproduce en el navegador; no se sube a ningún sitio.
-2. Elige un pasajero en el mapa de asientos, o teclea fila y letra (`12c`), y marca sus
-   eventos con una tecla mientras avanzas el vídeo: `L` se levanta, `B` en el borde de la
-   fila, `P` pisa el pasillo, `C`/`N` le ceden o no el paso, `A` abre el compartimento (con
-   la fila del compartimento), `S` maleta abajo, `V` vuelve atrás, `E` echa a andar, `X` sale.
-   Del vuelo: `I` se apaga la señal de cinturones, `U` sale alguien a quien no sigues.
-3. Copia el CSV y calíbralo:
+1. Open `web/annotate.html` (also linked from the simulation), load the video and fill in the
+   flight details. The video plays in the browser and is never uploaded.
+2. Pick a passenger on the seat map, or type row and letter (`12c`), and mark their events with
+   one key as the video plays: `S` stands up, `E` at the row edge, `A` steps into the aisle,
+   `Y`/`N` someone yields or nobody yields, `B` opens the bin (with the bin row), `D` bag down,
+   `R` walks back, `W` starts walking, `X` exits. For the whole flight: `O` seatbelt sign off,
+   `U` someone you are not following exits.
+3. Copy the CSV and calibrate:
    ```
-   python calibrate.py vuelo1.csv vuelo2.csv --out calibrado.json --validate
-   python simulate_deboarding.py --config calibrado.json
+   python calibrate.py flight1.csv flight2.csv --out calibrated.json --validate
+   python simulate_deboarding.py --config calibrated.json
    ```
-   `calibrate.py` solo cambia los parámetros con al menos 8 muestras (sumando vuelos) y deja
-   el resto como está, indicando cuántas muestras faltan.
+   `calibrate.py` only changes parameters with at least 8 samples (across flights), keeps the
+   rest as they are, and says how many samples are missing.
 
-El circuito está comprobado con vuelos simulados: `python calibrate.py --synthetic 3` anota
-tres vuelos simulados con parámetros conocidos y los recupera (mediana de `bag_time`
-7,1 s frente a 7,3 s; `p_prefetch` 0,78 frente a 0,80; `p_bag` 0,66 frente a 0,65).
-Tres detalles de medida que salieron de esa comprobación:
+The pipeline is checked on simulated flights: `python calibrate.py --synthetic 3` annotates three
+simulated flights with known parameters and recovers them (median `bag_time` 7.1 s against
+7.3 s; `p_prefetch` 0.78 against 0.80; `p_bag` 0.66 against 0.65). Three measurement details came
+out of that check:
 
-- **Maleta abajo** es cuando sale del compartimento, aunque la persona siga con ella en la
-  mano esperando sitio. Si alguien empieza a sacarla en la fila y la termina en el pasillo,
-  esa medida no se usa para `bag_time`.
-- **`p_prefetch`** solo se puede observar en quien espera en el borde al menos 3 s: si
-  alguien sale al pasillo sin esperar, no sabemos si la habría sacado desde la fila.
-- **`N` (no le ceden)** se marca solo si venía alguien por el pasillo. Si no venía nadie, no
-  se marca ni `C` ni `N`.
+- **Bag down** is when the bag is out of the bin, even if the person is still holding it while
+  waiting for room. If someone starts taking it down in the row and finishes in the aisle, that
+  measurement is not used for `bag_time`.
+- **`p_prefetch`** can only be observed for people who wait at the row edge for at least 3 s: if
+  someone steps into the aisle without waiting, we cannot tell whether they would have taken
+  their bag down from the row.
+- **`N` (nobody yields)** is only marked when someone was coming down the aisle. If nobody was
+  coming, mark neither `Y` nor `N`.
 
-### Qué grabar
+### What to record
 
-- **Fuente ideal**: un vídeo desde la parte delantera de la cabina mirando hacia atrás, o desde
-  la última fila mirando hacia la puerta, con el desembarque completo. Hay bastantes en YouTube
-  (por ejemplo, time-lapses de desembarque grabados por la tripulación); también sirve grabarlo
-  uno mismo desde el asiento.
-- **Caso de referencia**: el time-lapse de la tripulación de WestJet (vuelo Fort McMurray -
-  Calgary) muestra un desembarque de cortesía estricta, fila a fila, con pasajeros expertos.
-  Es un buen caso de validación para `p_yield = 1` si se conoce su factor de tiempo.
-- **No hace falta anotar a todo el pasaje**: seguir bien a 10-20 personas por vídeo, más
-  todas las salidas por la puerta (`U`), ya da muestras útiles.
-- **Validación**: con `--validate`, `calibrate.py` compara el tiempo total observado de cada
-  vuelo (desde la señal hasta la última salida) con la distribución del modelo calibrado.
-- **Privacidad**: no publiques vídeos en los que se reconozca a pasajeros. El CSV solo
-  contiene tiempos y números de asiento.
+- **Ideal footage**: a video from the front of the cabin looking back, or from the last row
+  looking towards the door, covering the whole deboarding. Searching YouTube for deboarding
+  time-lapses filmed by crews may turn some up; filming from your own seat also works.
+- **Reference case**: the time-lapse filmed by a WestJet crew (Fort McMurray - Calgary) shows a
+  strict courtesy deboarding, row by row, with experienced flyers. It is a good validation case
+  for `p_yield = 1` if its time factor is known.
+- **No need to annotate everyone**: following 10-20 people per video carefully, plus every exit
+  through the door (`U`), already gives useful samples.
+- **Validation**: with `--validate`, `calibrate.py` compares each flight's observed total time
+  (from the sign going off to the last exit) with the distribution of the calibrated model.
+- **Privacy**: do not publish videos in which passengers can be recognised. The CSV only
+  contains times and seat numbers.
 
-## Referencias
+## References
 
 - Schultz, M. (2018). Field Trial Measurements to Validate a Stochastic Aircraft Boarding Model.
   *Aerospace* 5(1):27. https://doi.org/10.3390/aerospace5010027

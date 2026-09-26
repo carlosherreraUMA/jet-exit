@@ -1,4 +1,4 @@
-<title>¿Quién cede el pasillo?</title>
+<title>Who Yields the Aisle?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
@@ -198,24 +198,24 @@
 
 <div class="wrap">
   <header>
-    <p class="eyebrow">Simulación de desembarque · A320, 30 filas 3-3, puerta L1 · vista cenital a escala</p>
-    <h1>¿Quién cede el pasillo?</h1>
+    <p class="eyebrow">Deboarding simulation · A320, 30 rows 3-3, door L1 · top view to scale</p>
+    <h1>Who yields the aisle?</h1>
     <p class="lede">
-      Al aterrizar, quien ya está de pie en el pasillo suele pararse para dejar salir a cada fila.
-      La hipótesis: <strong>sería más rápido que el pasillo no se detuviera</strong> y que quienes siguen
-      sentados esperaran un hueco real, aprovechando la espera para sacar sus cosas.
-      Los dos aviones llevan exactamente los mismos pasajeros; solo cambia esa regla.
+      After landing, people already standing in the aisle usually stop to let each row out.
+      The hypothesis: <strong>it would be faster if the aisle never stopped</strong> and those still
+      seated waited for a real gap, using the wait to get their things ready.
+      Both planes carry exactly the same passengers; only that rule changes.
     </p>
-    <p class="links"><a class="cta" href="cabin3d.html">Ver las dos cabinas en 3D →</a>
-      <a class="cta secondary" href="annotate.html">Aportar datos de un vídeo real</a></p>
+    <p class="links"><a class="cta" href="cabin3d.html">See both cabins in 3D →</a>
+      <a class="cta secondary" href="annotate.html">Contribute data from a real video</a></p>
   </header>
 
-  <section aria-label="Simulación en directo">
+  <section aria-label="Live simulation">
     <div class="toolbar">
-      <button id="play" class="primary" type="button">Pausar</button>
-      <button id="restart" type="button">Reiniciar</button>
-      <button id="newplane" type="button">Otro avión</button>
-      <label for="speed">Velocidad
+      <button id="play" class="primary" type="button">Pause</button>
+      <button id="restart" type="button">Restart</button>
+      <button id="newplane" type="button">Another plane</button>
+      <label for="speed">Speed
         <select id="speed">
           <option value="2">×2</option>
           <option value="5">×5</option>
@@ -223,45 +223,45 @@
           <option value="40">×40</option>
         </select>
       </label>
-      <label for="seed">Semilla <input id="seed" type="number" min="0" max="4294967295" step="1" value="1"></label>
+      <label for="seed">Seed <input id="seed" type="number" min="0" max="4294967295" step="1" value="1"></label>
     </div>
 
     <div class="panel cabins">
       <div class="cabin">
         <div class="cabin-head">
-          <div class="cabin-name"><span class="swatch" style="background: var(--courtesy)"></span><span>Cortesía</span></div>
-          <span class="sub" id="sub-a">el pasillo cede siempre (p_yield = 1)</span>
+          <div class="cabin-name"><span class="swatch" style="background: var(--courtesy)"></span><span>Courtesy</span></div>
+          <span class="sub" id="sub-a">the aisle always yields (p_yield = 1)</span>
           <div class="cabin-stats">
             <span class="clock" id="clock-a">0:00</span>
-            <span><b class="num" id="out-a">0</b> fuera</span>
+            <span><b class="num" id="out-a">0</b> out</span>
             <span><b class="num" id="rate-a">–</b> pax/min</span>
-            <span class="done-chip" id="done-a" hidden>Terminado</span>
+            <span class="done-chip" id="done-a" hidden>Done</span>
           </div>
         </div>
-        <div class="cabin-scroll"><canvas class="cabin-canvas" id="canvas-a" aria-label="Cabina con política de cortesía"></canvas></div>
+        <div class="cabin-scroll"><canvas class="cabin-canvas" id="canvas-a" aria-label="Cabin with the courtesy rule"></canvas></div>
       </div>
       <div class="cabin">
         <div class="cabin-head">
-          <div class="cabin-name"><span class="swatch" style="background: var(--priority)"></span><span>Pasillo primero</span></div>
-          <span class="sub">nadie en el pasillo se detiene (p_yield = 0)</span>
+          <div class="cabin-name"><span class="swatch" style="background: var(--priority)"></span><span>Aisle first</span></div>
+          <span class="sub">nobody in the aisle stops (p_yield = 0)</span>
           <div class="cabin-stats">
             <span class="clock" id="clock-b">0:00</span>
-            <span><b class="num" id="out-b">0</b> fuera</span>
+            <span><b class="num" id="out-b">0</b> out</span>
             <span><b class="num" id="rate-b">–</b> pax/min</span>
-            <span class="done-chip" id="done-b" hidden>Terminado</span>
+            <span class="done-chip" id="done-b" hidden>Done</span>
           </div>
         </div>
-        <div class="cabin-scroll"><canvas class="cabin-canvas" id="canvas-b" aria-label="Cabina con prioridad de pasillo"></canvas></div>
+        <div class="cabin-scroll"><canvas class="cabin-canvas" id="canvas-b" aria-label="Cabin with the aisle-first rule"></canvas></div>
       </div>
-      <div class="legend" aria-label="Leyenda">
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--preparing)"/></svg>Sentado, preparándose</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--waiting)" stroke-width="2"/></svg>Listo, esperando a su fila</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--waiting)"/></svg>De pie, quiere salir al pasillo</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--entering)"/></svg>Entrando al pasillo</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1.5" fill="var(--bag)"/></svg>Sacando la maleta (bloquea)</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--bag)" stroke-width="2"/></svg>Vuelve atrás a por su maleta</span>
-        <span><svg width="18" height="14" viewBox="0 0 18 14"><ellipse cx="6" cy="7" rx="5" ry="5" fill="var(--walking)"/><rect x="11.5" y="4" width="5" height="6" rx="1" fill="var(--luggage)"/></svg>Caminando (con maleta)</span>
-        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="var(--walking)"/><circle cx="7" cy="7" r="6" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Parado para dejar salir a una fila</span>
+      <div class="legend" aria-label="Legend">
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--preparing)"/></svg>Seated, getting ready</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--waiting)" stroke-width="2"/></svg>Ready, waiting for their row</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="var(--waiting)"/></svg>Standing, wants to step out</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--entering)"/></svg>Stepping into the aisle</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><rect x="2" y="2" width="10" height="10" rx="1.5" fill="var(--bag)"/></svg>Taking the bag down (blocks)</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.5" fill="none" stroke="var(--bag)" stroke-width="2"/></svg>Walking back for their bag</span>
+        <span><svg width="18" height="14" viewBox="0 0 18 14"><ellipse cx="6" cy="7" rx="5" ry="5" fill="var(--walking)"/><rect x="11.5" y="4" width="5" height="6" rx="1" fill="var(--luggage)"/></svg>Walking (with bag)</span>
+        <span><svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="var(--walking)"/><circle cx="7" cy="7" r="6" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="2 1.6"/></svg>Stopped to let a row out</span>
       </div>
     </div>
   </section>
@@ -269,57 +269,57 @@
   <div class="grid-2">
     <section class="panel" aria-labelledby="params-title">
       <div class="section-head">
-        <h3 id="params-title">Parámetros del vuelo</h3>
-        <p class="sub">Al cambiar cualquiera, los dos aviones se regeneran con los mismos pasajeros y el Monte Carlo se recalcula.</p>
+        <h3 id="params-title">Flight parameters</h3>
+        <p class="sub">Changing any of them regenerates both planes with the same passengers and reruns the Monte Carlo.</p>
       </div>
       <div class="params">
         <div class="param">
-          <label for="p_yield">Cortesía del avión de arriba</label><output id="p_yield-out" for="p_yield"></output>
+          <label for="p_yield">Courtesy of the top plane</label><output id="p_yield-out" for="p_yield"></output>
           <input id="p_yield" type="range" min="0" max="1" step="0.05" value="1">
-          <small>Probabilidad de que quien camina por el pasillo se pare a dejar salir a una fila.</small>
+          <small>Probability that someone walking down the aisle stops to let a row out.</small>
         </div>
         <div class="param">
-          <label for="rows">Filas</label><output id="rows-out" for="rows"></output>
+          <label for="rows">Rows</label><output id="rows-out" for="rows"></output>
           <input id="rows" type="range" min="6" max="40" step="1" value="30">
         </div>
         <div class="param">
-          <label for="p_occupancy">Ocupación</label><output id="p_occupancy-out" for="p_occupancy"></output>
+          <label for="p_occupancy">Occupancy</label><output id="p_occupancy-out" for="p_occupancy"></output>
           <input id="p_occupancy" type="range" min="0.4" max="1" step="0.05" value="1">
         </div>
         <div class="param">
-          <label for="p_bag">Llevan maleta en el compartimento</label><output id="p_bag-out" for="p_bag"></output>
+          <label for="p_bag">Have a bag in the overhead bin</label><output id="p_bag-out" for="p_bag"></output>
           <input id="p_bag" type="range" min="0" max="1" step="0.05" value="0.65">
-          <small>Sacarla cuesta entre 1,5 y 30 s; la mitad tarda menos de 7,3 s.</small>
+          <small>Taking it down takes 1.5 to 30 s; half take less than 7.3 s.</small>
         </div>
         <div class="param">
-          <label for="p_prefetch">La sacan de pie en su fila, si la alcanzan</label><output id="p_prefetch-out" for="p_prefetch"></output>
+          <label for="p_prefetch">Take it down standing in their row, if in reach</label><output id="p_prefetch-out" for="p_prefetch"></output>
           <input id="p_prefetch" type="range" min="0" max="1" step="0.05" value="0.8">
-          <small>Los demás la sacan ya en el pasillo, bloqueándolo.</small>
+          <small>Everyone else takes it down in the aisle, blocking it.</small>
         </div>
         <div class="param">
-          <label for="bins_elsewhere">Maletas guardadas lejos de su fila</label><output id="bins_elsewhere-out" for="bins_elsewhere"></output>
+          <label for="bins_elsewhere">Bags stored away from their row</label><output id="bins_elsewhere-out" for="bins_elsewhere"></output>
           <input id="bins_elsewhere" type="range" min="0" max="0.6" step="0.02" value="0.28">
-          <small>Si está detrás y fuera de su alcance, esperan a que se vacíe el pasillo y van contra la corriente.</small>
+          <small>If the bag is behind and out of reach, they wait for the aisle to clear and walk against the flow.</small>
         </div>
         <div class="param">
-          <label for="door_headway">Puerta: segundos entre pasajeros</label><output id="door_headway-out" for="door_headway"></output>
+          <label for="door_headway">Door: seconds between passengers</label><output id="door_headway-out" for="door_headway"></output>
           <input id="door_headway" type="range" min="0.5" max="4" step="0.5" value="1">
-          <small>Si la puerta es el cuello de botella, la regla del pasillo deja de importar.</small>
+          <small>If the door is the bottleneck, the aisle rule stops mattering.</small>
         </div>
       </div>
     </section>
 
     <section class="panel" aria-labelledby="exits-title">
       <div class="section-head">
-        <h3 id="exits-title">Pasajeros fuera del avión</h3>
-        <p class="sub">Acumulado frente al tiempo, en este avión concreto.</p>
+        <h3 id="exits-title">Passengers off the plane</h3>
+        <p class="sub">Cumulative over time, for this particular plane.</p>
       </div>
       <div class="chart-legend">
-        <span><span class="swatch" style="background: var(--courtesy)"></span>Cortesía</span>
-        <span><span class="swatch" style="background: var(--priority)"></span>Pasillo primero</span>
+        <span><span class="swatch" style="background: var(--courtesy)"></span>Courtesy</span>
+        <span><span class="swatch" style="background: var(--priority)"></span>Aisle first</span>
       </div>
       <div class="chart-box" id="exits-box">
-        <canvas id="exits-chart" aria-label="Pasajeros fuera frente al tiempo"></canvas>
+        <canvas id="exits-chart" aria-label="Passengers off the plane over time"></canvas>
         <div class="tip" id="exits-tip" hidden></div>
       </div>
     </section>
@@ -327,51 +327,51 @@
 
   <section aria-labelledby="mc-title">
     <div class="section-head">
-      <h2 id="mc-title">Muchos aviones, no solo uno</h2>
-      <p>Un avión puede salir bien o mal por casualidad. Aquí se simulan <span id="mc-k-label">40</span> aviones distintos con los parámetros de arriba, con las dos reglas y con grados intermedios de cortesía. Las diferencias son emparejadas: se comparan los mismos pasajeros.</p>
+      <h2 id="mc-title">Many planes, not just one</h2>
+      <p>One plane can go well or badly by chance. Here <span id="mc-k-label">40</span> different planes are simulated with the parameters above, under both rules and intermediate degrees of courtesy. Differences are paired: the same passengers are compared.</p>
     </div>
     <div class="mc-bar">
-      <label for="mc-k" class="sub">Aviones por punto</label>
+      <label for="mc-k" class="sub">Planes per point</label>
       <select id="mc-k">
         <option value="20">20</option>
         <option value="40" selected>40</option>
         <option value="100">100</option>
       </select>
-      <button id="mc-run" type="button">Recalcular</button>
+      <button id="mc-run" type="button">Recompute</button>
       <progress id="mc-progress" max="1" value="0"></progress>
-      <span class="sub" id="mc-status">Calculando…</span>
+      <span class="sub" id="mc-status">Computing…</span>
     </div>
     <div class="tiles">
       <div class="panel tile">
-        <span class="label"><span class="swatch" style="background: var(--courtesy)"></span>Cortesía, tiempo total medio</span>
+        <span class="label"><span class="swatch" style="background: var(--courtesy)"></span>Courtesy, mean total time</span>
         <span class="big" id="tile-court">–</span>
         <span class="sub" id="tile-court-sub">&nbsp;</span>
       </div>
       <div class="panel tile">
-        <span class="label"><span class="swatch" style="background: var(--priority)"></span>Pasillo primero, tiempo total medio</span>
+        <span class="label"><span class="swatch" style="background: var(--priority)"></span>Aisle first, mean total time</span>
         <span class="big" id="tile-prio">–</span>
         <span class="sub" id="tile-prio-sub">&nbsp;</span>
       </div>
       <div class="panel tile">
-        <span class="label">Tiempo que ahorra el pasillo primero</span>
+        <span class="label">Time saved by aisle first</span>
         <span class="big" id="tile-diff">–</span>
         <span class="sub" id="tile-diff-sub">&nbsp;</span>
       </div>
     </div>
     <div class="panel">
       <div class="section-head">
-        <h3>Tiempo total según el grado de cortesía</h3>
-        <p class="sub">Media de todos los aviones, con intervalo de confianza del 95 %.</p>
+        <h3>Total time by degree of courtesy</h3>
+        <p class="sub">Mean over all planes, with a 95% confidence interval.</p>
       </div>
       <div class="chart-box" id="curve-box">
-        <canvas id="curve-chart" aria-label="Tiempo total frente a probabilidad de ceder el paso"></canvas>
+        <canvas id="curve-chart" aria-label="Total time against the probability of yielding"></canvas>
         <div class="tip" id="curve-tip" hidden></div>
       </div>
       <details>
-        <summary>Ver los datos en tabla</summary>
+        <summary>Show the data as a table</summary>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Probabilidad de ceder</th><th>Tiempo total medio</th><th>IC 95 %</th><th>Salida media por pasajero</th><th>Ritmo medio</th></tr></thead>
+            <thead><tr><th>Probability of yielding</th><th>Mean total time</th><th>95% CI</th><th>Mean exit per passenger</th><th>Mean rate</th></tr></thead>
             <tbody id="curve-table"></tbody>
           </table>
         </div>
@@ -381,12 +381,12 @@
 
   <section aria-labelledby="sens-title">
     <div class="section-head">
-      <h2 id="sens-title">¿Cuándo deja de cumplirse?</h2>
-      <p>Barrido con 100 aviones por valor (<code>node sweep.js</code>, el mismo modelo que esta página y que el simulador en Python): se cambia un parámetro cada vez y el resto se queda en sus valores por defecto. La última columna es cuánto más tarda la cortesía que el pasillo primero.</p>
+      <h2 id="sens-title">When does it stop holding?</h2>
+      <p>Sweep with 100 planes per value (<code>node sweep.js</code>, the same model as this page and the Python simulator): one parameter changes at a time and the rest keep their defaults. The last column is how much longer courtesy takes than aisle first.</p>
     </div>
     <div class="panel table-scroll">
       <table>
-        <thead><tr><th>Parámetro</th><th>Valor</th><th>Cortesía</th><th>Pasillo primero</th><th>Diferencia (IC 95 %)</th></tr></thead>
+        <thead><tr><th>Parameter</th><th>Value</th><th>Courtesy</th><th>Aisle first</th><th>Difference (95% CI)</th></tr></thead>
         <tbody id="sens-table"></tbody>
       </table>
     </div>
@@ -394,24 +394,24 @@
 
   <section aria-labelledby="model-title">
     <div class="section-head">
-      <h2 id="model-title">Cómo está hecho el modelo</h2>
-      <p>Cada número es un parámetro con su fuente; los que aún no tienen datos son estimaciones a la espera de mediciones en vídeo (ver <code>DATA.md</code>).</p>
+      <h2 id="model-title">How the model works</h2>
+      <p>Every number is a parameter with its source; those without data yet are estimates waiting for video measurements (see <code>DATA.md</code>).</p>
     </div>
     <div class="notes">
       <div class="panel">
         <ol>
-          <li><strong>Pasillo continuo.</strong> Cada persona tiene su profundidad de cuerpo (28-45 cm), su velocidad libre (0,5-1,1 m/s; mediana 0,8 m/s, medida por Schultz) y aceleración limitada. Guarda 15 cm con quien tiene delante y 0,6 s de distancia en marcha; si está parada, espera a tener 25 cm más de hueco antes de arrancar, así que las colas se ponen en marcha en ola.</li>
-          <li><strong>Dentro de la fila.</strong> Todos se preparan sentados a la vez (0-10 s). Sale primero el de pasillo; los demás se levantan y se desplazan de lado cuando queda sitio.</li>
-          <li><strong>Maletas.</strong> El 65 % lleva maleta arriba. Si la alcanzan desde su fila, el 80 % la saca mientras espera; si no, la sacan en el pasillo y bloquean. Con la maleta en la mano ocupan 25 cm más y van un 15 % más lentos.</li>
-          <li><strong>Compartimentos.</strong> El 28 % de las maletas no está encima de su fila. Si está delante, se paran a cogerla al pasar; si está detrás y fuera de alcance, esperan a que el pasillo hasta ella esté vacío, lo reservan y van contra la corriente.</li>
+          <li><strong>Continuous aisle.</strong> Each person has a body depth (28-45 cm), a free walking speed (0.5-1.1 m/s; median 0.8 m/s, measured by Schultz) and limited acceleration. They keep 15 cm from the person ahead when stopped and a 0.6 s headway when moving; once stopped, they wait for 25 cm more before starting again, so queues restart as a wave.</li>
+          <li><strong>Inside the row.</strong> Everyone gets ready seated at the same time (0-10 s). The aisle seat leaves first; the others stand up and shuffle sideways once there is room.</li>
+          <li><strong>Bags.</strong> 65% have a bag overhead. If they can reach it from their row, 80% take it down while they wait; otherwise they take it down in the aisle, blocking it. Carrying a bag, they take up 25 cm more and walk 15% slower.</li>
+          <li><strong>Bins.</strong> 28% of bags are not above their row. If the bag is ahead, they stop to pick it up on the way; if it is behind and out of reach, they wait until the aisle up to it is empty, reserve it and walk against the flow.</li>
         </ol>
       </div>
       <div class="panel">
         <ol start="5">
-          <li><strong>La regla que se compara.</strong> Al acercarse a una fila donde alguien se está levantando, quien camina decide una vez si se para a dejarla salir entera (probabilidad p_yield).</li>
-          <li><strong>Huecos.</strong> Con cualquier regla, quien está en el borde puede salir sin que le cedan el paso si hay sitio y nadie se acerca a menos de 1 m más 1,5 s por cada m/s de velocidad.</li>
-          <li><strong>Calibración.</strong> Con cortesía, un A320 lleno tarda 12,7 min (14-15 pax/min); lo observado es 15-17 pax/min y entre 6:27 y 13 min con al menos un 80 % de ocupación.</li>
-          <li><strong>Mismo código.</strong> Esta página ejecuta un port exacto del simulador en Python, con el mismo generador aleatorio. Comprobación contra Python: <span id="parity">pendiente</span></li>
+          <li><strong>The rule being compared.</strong> When approaching a row where someone is getting up, a walker decides once whether to stop and let the whole row out (probability p_yield).</li>
+          <li><strong>Gaps.</strong> Under any rule, someone at the row edge may step out without being let in if there is room and nobody is closer than 1 m plus 1.5 s per m/s of speed.</li>
+          <li><strong>Calibration.</strong> With courtesy, a full A320 takes 12.7 min (14-15 pax/min); observed rates are 15-17 pax/min and 6:27 to 13 min with at least 80% occupancy.</li>
+          <li><strong>Same code.</strong> This page runs an exact port of the Python simulator, with the same random number generator. Check against Python: <span id="parity">pending</span></li>
         </ol>
       </div>
     </div>
@@ -428,7 +428,7 @@ const fmtTime = (s) => {
   return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
 };
 const fmtSigned = (s) => (s < 0 ? "−" : "+") + fmtTime(Math.abs(s));
-const fmtNum = (x, d = 0) => x.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtNum = (x, d = 0) => x.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 // ---- theme colours ---------------------------------------------------------
 let colors = {};
@@ -459,10 +459,10 @@ function setupCanvas(canvas, cssHeight) {
 const PARAMS = {
   p_yield: (v) => fmtNum(v, 2),
   rows: (v) => String(v),
-  p_occupancy: (v) => `${Math.round(v * 100)} %`,
-  p_bag: (v) => `${Math.round(v * 100)} %`,
-  p_prefetch: (v) => `${Math.round(v * 100)} %`,
-  bins_elsewhere: (v) => `${Math.round(v * 100)} %`,
+  p_occupancy: (v) => `${Math.round(v * 100)}%`,
+  p_bag: (v) => `${Math.round(v * 100)}%`,
+  p_prefetch: (v) => `${Math.round(v * 100)}%`,
+  bins_elsewhere: (v) => `${Math.round(v * 100)}%`,
   door_headway: (v) => `${fmtNum(v, 1)} s`,
 };
 function readParams() {
@@ -497,8 +497,8 @@ function newLive() {
   const a = new Sim({ ...cfg, p_yield: p.p_yield }, p.seed);
   const b = new Sim({ ...cfg, p_yield: 0 }, p.seed);
   live = { a, b, histA: [0], histB: [0], n: a.pax.length };
-  $("sub-a").textContent = p.p_yield === 1 ? "el pasillo cede siempre (p_yield = 1)"
-    : `el pasillo cede con probabilidad ${fmtNum(p.p_yield, 2)}`;
+  $("sub-a").textContent = p.p_yield === 1 ? "the aisle always yields (p_yield = 1)"
+    : `the aisle yields with probability ${fmtNum(p.p_yield, 2)}`;
   acc = 0;
   drawAll();
 }
@@ -704,8 +704,8 @@ function drawExits() {
   ctx.beginPath(); ctx.moveTo(pad.l, h - pad.b + 0.5); ctx.lineTo(w - pad.r, h - pad.b + 0.5); ctx.stroke();
 
   const series = [
-    { hist: live.histA, color: colors.courtesy, label: "Cortesía", sim: live.a },
-    { hist: live.histB, color: colors.priority, label: "Pasillo primero", sim: live.b },
+    { hist: live.histA, color: colors.courtesy, label: "Courtesy", sim: live.a },
+    { hist: live.histB, color: colors.priority, label: "Aisle first", sim: live.b },
   ];
   for (const s of series) {
     ctx.strokeStyle = s.color; ctx.lineWidth = 2; ctx.lineJoin = "round";
@@ -742,8 +742,8 @@ function drawExits() {
     ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, ys(v), 4, 0, Math.PI * 2); ctx.fill();
   }
   tip.innerHTML = `<b>${fmtTime(i * dt)}</b>` +
-    `<div class="row"><span class="swatch" style="background:var(--courtesy)"></span>Cortesía: ${va} fuera</div>` +
-    `<div class="row"><span class="swatch" style="background:var(--priority)"></span>Pasillo primero: ${vb} fuera</div>`;
+    `<div class="row"><span class="swatch" style="background:var(--courtesy)"></span>Courtesy: ${va} out</div>` +
+    `<div class="row"><span class="swatch" style="background:var(--priority)"></span>Aisle first: ${vb} out</div>`;
   placeTip(tip, $("exits-box"), x, pad.t + 10);
 }
 $("exits-chart").addEventListener("pointermove", (e) => {
@@ -776,7 +776,7 @@ function runMonteCarlo() {
   const results = Object.fromEntries(CURVE_P.map((py) => [py, new Array(k)]));
   let done = 0;
   const t0 = performance.now();
-  $("mc-status").textContent = "Calculando…";
+  $("mc-status").textContent = "Computing…";
   $("mc-progress").hidden = false;
   $("mc-progress").value = 0;
 
@@ -785,7 +785,7 @@ function runMonteCarlo() {
     mc = { params: p, cfg, k, results };
     $("mc-progress").hidden = true;
     $("mc-status").textContent =
-      `${jobs.length} simulaciones en ${fmtNum((performance.now() - t0) / 1000, 1)} s · semilla ${p.seed}`;
+      `${jobs.length} simulations in ${fmtNum((performance.now() - t0) / 1000, 1)} s · seed ${p.seed}`;
     renderMonteCarlo();
   };
   const record = (j, metrics) => {
@@ -839,13 +839,13 @@ function renderMonteCarlo() {
   const exitsPrio = statsOf(mc.results[0].map((m) => m.mean_exit));
   const n = mc.cfg.rows * 6 * mc.cfg.p_occupancy;
   $("tile-court").textContent = fmtTime(court.mean);
-  $("tile-court-sub").textContent = `${fmtNum(n / (court.mean / 60), 1)} pax/min · salida media por pasajero ${fmtTime(exitsCourt.mean)}`;
+  $("tile-court-sub").textContent = `${fmtNum(n / (court.mean / 60), 1)} pax/min · mean exit per passenger ${fmtTime(exitsCourt.mean)}`;
   $("tile-prio").textContent = fmtTime(prio.mean);
-  $("tile-prio-sub").textContent = `${fmtNum(n / (prio.mean / 60), 1)} pax/min · salida media por pasajero ${fmtTime(exitsPrio.mean)}`;
+  $("tile-prio-sub").textContent = `${fmtNum(n / (prio.mean / 60), 1)} pax/min · mean exit per passenger ${fmtTime(exitsPrio.mean)}`;
   $("tile-diff").textContent = d >= 0 ? fmtTime(d) : "−" + fmtTime(-d);
   $("tile-diff-sub").textContent = d >= 0
-    ? `${fmtNum(d / court.mean * 100, 0)} % menos que con cortesía · IC 95 % ${fmtTime(lo)} a ${fmtTime(hi)}`
-    : `el pasillo primero tarda más · IC 95 % ${fmtSigned(-hi)} a ${fmtSigned(-lo)}`;
+    ? `${fmtNum(d / court.mean * 100, 0)}% less than with courtesy · 95% CI ${fmtTime(lo)} to ${fmtTime(hi)}`
+    : `aisle first is slower · 95% CI ${fmtSigned(-hi)} to ${fmtSigned(-lo)}`;
   $("curve-table").innerHTML = CURVE_P.map((py) => {
     const s = statsOf(tot(py));
     const ex = statsOf(mc.results[py].map((m) => m.mean_exit));
@@ -879,7 +879,7 @@ function drawCurve() {
   ctx.textAlign = "center"; ctx.textBaseline = "top";
   for (const p of CURVE_P) ctx.fillText(fmtNum(p, 2), xs(p), h - pad.b + 8);
   ctx.font = `400 12px ${colors.body}`; ctx.fillStyle = colors["ink-2"];
-  ctx.fillText("Probabilidad de que quien camina ceda el paso", (pad.l + w - pad.r) / 2, h - pad.b + 22);
+  ctx.fillText("Probability that a walker yields", (pad.l + w - pad.r) / 2, h - pad.b + 22);
   ctx.strokeStyle = colors.line;
   ctx.beginPath(); ctx.moveTo(pad.l, h - pad.b + 0.5); ctx.lineTo(w - pad.r, h - pad.b + 0.5); ctx.stroke();
 
@@ -897,13 +897,13 @@ function drawCurve() {
   }
   ctx.font = `500 12px ${colors.body}`; ctx.fillStyle = colors.ink; ctx.textBaseline = "bottom";
   const p0 = pts[0], p1 = pts[pts.length - 1];
-  ctx.textAlign = "left"; ctx.fillText(`Pasillo primero ${fmtTime(p0.mean)}`, xs(0) + 10, ys(p0.mean) - 8);
-  ctx.textAlign = "right"; ctx.fillText(`Cortesía ${fmtTime(p1.mean)}`, xs(1) - 10, ys(p1.mean) - 8);
+  ctx.textAlign = "left"; ctx.fillText(`Aisle first ${fmtTime(p0.mean)}`, xs(0) + 10, ys(p0.mean) - 8);
+  ctx.textAlign = "right"; ctx.fillText(`Courtesy ${fmtTime(p1.mean)}`, xs(1) - 10, ys(p1.mean) - 8);
 
   const tip = $("curve-tip");
   if (curveHover === null) { tip.hidden = true; return; }
   const q = pts.find((z) => z.p === curveHover);
-  tip.innerHTML = `<b>Cede con probabilidad ${fmtNum(q.p, 2)}</b><div>Media ${fmtTime(q.mean)} · IC 95 % ${fmtTime(q.lo)} – ${fmtTime(q.hi)}</div><div>${mc.k} aviones</div>`;
+  tip.innerHTML = `<b>Yields with probability ${fmtNum(q.p, 2)}</b><div>Mean ${fmtTime(q.mean)} · 95% CI ${fmtTime(q.lo)} – ${fmtTime(q.hi)}</div><div>${mc.k} planes</div>`;
   placeTip(tip, $("curve-box"), xs(q.p), ys(q.mean) - 30);
 }
 $("curve-chart").addEventListener("pointermove", (e) => {
@@ -919,13 +919,13 @@ $("curve-chart").addEventListener("pointerleave", () => { curveHover = null; dra
 
 // ---- sensitivity table (from the Python sweep) -----------------------------
 const SENS_LABEL = {
-  p_prefetch: ["Sacan la maleta en su fila", (v) => `${Math.round(v * 100)} %`],
-  p_bag: ["Llevan maleta en el compartimento", (v) => `${Math.round(v * 100)} %`],
-  p_occupancy: ["Ocupación", (v) => `${Math.round(v * 100)} %`],
-  door_headway: ["Puerta: segundos por pasajero", (v) => `${fmtNum(v, 1)} s`],
-  bag_scale: ["Tiempo de sacar la maleta", (v) => `×${fmtNum(v, 1)}`],
-  bins_elsewhere: ["Maletas lejos de su fila", (v) => `${Math.round(v * 100)} %`],
-  gap_distance: ["Hueco mínimo para salir sin que te cedan el paso", (v) => `${fmtNum(v, 1)} m`],
+  p_prefetch: ["Take the bag down in their row", (v) => `${Math.round(v * 100)}%`],
+  p_bag: ["Have a bag in the overhead bin", (v) => `${Math.round(v * 100)}%`],
+  p_occupancy: ["Occupancy", (v) => `${Math.round(v * 100)}%`],
+  door_headway: ["Door: seconds per passenger", (v) => `${fmtNum(v, 1)} s`],
+  bag_scale: ["Time to take a bag down", (v) => `×${fmtNum(v, 1)}`],
+  bins_elsewhere: ["Bags away from their row", (v) => `${Math.round(v * 100)}%`],
+  gap_distance: ["Minimum gap to step out without being let in", (v) => `${fmtNum(v, 1)} m`],
 };
 function renderSensitivity() {
   let prev = null;
@@ -935,8 +935,8 @@ function renderSensitivity() {
     const pct = r.diff / r.aisle * 100;
     return `<tr><td>${first ? label : ""}</td><td class="num">${fmt(r.value)}</td>` +
       `<td class="num">${fmtTime(r.courtesy)}</td><td class="num">${fmtTime(r.aisle)}</td>` +
-      `<td class="num">${fmtSigned(r.diff)} (${fmtSigned(r.lo)} a ${fmtSigned(r.hi)}) · ${pct >= 0 ? "+" : "−"}${fmtNum(Math.abs(pct), 0)} %</td></tr>`;
-  }).join("") || `<tr><td colspan="5">Aún no hay barrido para este modelo.</td></tr>`;
+      `<td class="num">${fmtSigned(r.diff)} (${fmtSigned(r.lo)} to ${fmtSigned(r.hi)}) · ${pct >= 0 ? "+" : "−"}${fmtNum(Math.abs(pct), 0)}%</td></tr>`;
+  }).join("") || `<tr><td colspan="5">No sweep for this model yet.</td></tr>`;
 }
 
 // ---- parity with Python ----------------------------------------------------
@@ -951,8 +951,8 @@ function checkParity() {
   }
   const el = $("parity");
   el.className = "check " + (ok === PARITY.length ? "ok" : "bad");
-  el.textContent = ok === PARITY.length ? `✓ ${ok} de ${PARITY.length} casos idénticos`
-    : `✗ solo ${ok} de ${PARITY.length} casos coinciden`;
+  el.textContent = ok === PARITY.length ? `✓ ${ok} of ${PARITY.length} cases identical`
+    : `✗ only ${ok} of ${PARITY.length} cases match`;
 }
 
 // ---- wiring ----------------------------------------------------------------
@@ -967,13 +967,13 @@ $("seed").addEventListener("change", onParamsChange);
 $("play").addEventListener("click", () => {
   if (live && live.a.nInside === 0 && live.b.nInside === 0) { newLive(); playing = true; }
   else playing = !playing;
-  $("play").textContent = playing ? "Pausar" : "Reproducir";
+  $("play").textContent = playing ? "Pause" : "Play";
 });
-$("restart").addEventListener("click", () => { newLive(); playing = true; $("play").textContent = "Pausar"; });
+$("restart").addEventListener("click", () => { newLive(); playing = true; $("play").textContent = "Pause"; });
 $("newplane").addEventListener("click", () => {
   $("seed").value = Math.floor(Math.random() * 4294967296);
   onParamsChange();
-  playing = true; $("play").textContent = "Pausar";
+  playing = true; $("play").textContent = "Pause";
 });
 $("mc-run").addEventListener("click", runMonteCarlo);
 $("mc-k").addEventListener("change", runMonteCarlo);
@@ -989,7 +989,7 @@ if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
   // no animation: show both planes already finished
   while (live.a.nInside > 0 || live.b.nInside > 0) { advance(live.a, live.histA); advance(live.b, live.histB); }
   playing = false;
-  $("play").textContent = "Reproducir";
+  $("play").textContent = "Play";
   drawAll();
 }
 renderSensitivity();

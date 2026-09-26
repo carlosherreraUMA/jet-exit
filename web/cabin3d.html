@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cabina en 3D</title>
+<title>Cabin in 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
@@ -146,16 +146,16 @@
 </head>
 <body>
 <div id="app">
-  <canvas id="scene" aria-label="Dos cabinas de A320 en 3D desembarcando: cortesía y pasillo primero"></canvas>
+  <canvas id="scene" aria-label="Two A320 cabins deboarding in 3D: courtesy and aisle first"></canvas>
 
   <div class="bar">
-    <h1>¿Quién cede el pasillo? · 3D</h1>
-    <a href="index.html">Vista 2D y estadísticas</a>
+    <h1>Who yields the aisle? · 3D</h1>
+    <a href="index.html">2D view and statistics</a>
     <span class="spacer"></span>
-    <button id="play" class="primary" type="button">Pausar</button>
-    <button id="restart" type="button">Reiniciar</button>
-    <button id="newplane" type="button">Otro avión</button>
-    <label for="speed">Velocidad
+    <button id="play" class="primary" type="button">Pause</button>
+    <button id="restart" type="button">Restart</button>
+    <button id="newplane" type="button">Another plane</button>
+    <label for="speed">Speed
       <select id="speed">
         <option value="1">×1</option>
         <option value="3">×3</option>
@@ -163,42 +163,42 @@
         <option value="20">×20</option>
       </select>
     </label>
-    <label for="rows">Filas
+    <label for="rows">Rows
       <select id="rows">
         <option value="10">10</option>
         <option value="20">20</option>
         <option value="30" selected>30</option>
       </select>
     </label>
-    <label for="seed">Semilla <input id="seed" type="number" min="0" max="4294967295" step="1" value="1"></label>
-    <label for="camera">Cámara
+    <label for="seed">Seed <input id="seed" type="number" min="0" max="4294967295" step="1" value="1"></label>
+    <label for="camera">Camera
       <select id="camera">
-        <option value="general" selected>General</option>
-        <option value="doorA">Desde la puerta · cortesía</option>
-        <option value="doorB">Desde la puerta · pasillo primero</option>
-        <option value="side">Lateral</option>
-        <option value="top">Planta</option>
+        <option value="general" selected>Overview</option>
+        <option value="doorA">From the door · courtesy</option>
+        <option value="doorB">From the door · aisle first</option>
+        <option value="side">Side</option>
+        <option value="top">Top</option>
       </select>
     </label>
   </div>
 
   <div class="tag" id="tag-a">
-    <span class="name"><span class="swatch" style="background: var(--courtesy)"></span>Cortesía</span>
-    <span class="meta"><span class="clock" id="clock-a">0:00</span> · <span id="out-a">0</span> fuera</span>
+    <span class="name"><span class="swatch" style="background: var(--courtesy)"></span>Courtesy</span>
+    <span class="meta"><span class="clock" id="clock-a">0:00</span> · <span id="out-a">0</span> out</span>
   </div>
   <div class="tag" id="tag-b">
-    <span class="name"><span class="swatch" style="background: var(--priority)"></span>Pasillo primero</span>
-    <span class="meta"><span class="clock" id="clock-b">0:00</span> · <span id="out-b">0</span> fuera</span>
+    <span class="name"><span class="swatch" style="background: var(--priority)"></span>Aisle first</span>
+    <span class="meta"><span class="clock" id="clock-b">0:00</span> · <span id="out-b">0</span> out</span>
   </div>
 
-  <div class="legend" aria-label="Leyenda: color de la camiseta">
-    <span><span class="swatch" style="background: var(--preparing)"></span>Preparándose</span>
-    <span><span class="swatch" style="background: var(--waiting)"></span>Saliendo de la fila</span>
-    <span><span class="swatch" style="background: var(--entering)"></span>Entrando al pasillo</span>
-    <span><span class="swatch" style="background: var(--bag)"></span>Sacando la maleta o volviendo a por ella</span>
-    <span><span class="swatch" style="background: var(--walking)"></span>Caminando</span>
-    <span><svg width="16" height="10" viewBox="0 0 16 10"><ellipse cx="8" cy="5" rx="7" ry="3.5" fill="none" stroke="var(--ink)" stroke-width="1.6"/></svg>Parado cediendo el paso</span>
-    <span class="hint">Arrastra para girar · rueda o pellizco para acercar</span>
+  <div class="legend" aria-label="Legend: shirt colour">
+    <span><span class="swatch" style="background: var(--preparing)"></span>Getting ready</span>
+    <span><span class="swatch" style="background: var(--waiting)"></span>Getting out of the row</span>
+    <span><span class="swatch" style="background: var(--entering)"></span>Stepping into the aisle</span>
+    <span><span class="swatch" style="background: var(--bag)"></span>Taking a bag down, or walking back for it</span>
+    <span><span class="swatch" style="background: var(--walking)"></span>Walking</span>
+    <span><svg width="16" height="10" viewBox="0 0 16 10"><ellipse cx="8" cy="5" rx="7" ry="3.5" fill="none" stroke="var(--ink)" stroke-width="1.6"/></svg>Stopped to let a row out</span>
+    <span class="hint">Drag to rotate · scroll or pinch to zoom</span>
   </div>
   <div class="error" id="error" hidden></div>
 </div>
@@ -215,7 +215,7 @@ const fmtTime = (s) => { const t = Math.round(s); return `${Math.floor(t / 60)}:
 
 if (!window.THREE || !THREE.OrbitControls) {
   $("error").hidden = false;
-  $("error").textContent = "No se ha podido cargar Three.js. Revisa la conexión y recarga la página.";
+  $("error").textContent = "Three.js could not be loaded. Check your connection and reload the page.";
   throw new Error("three.js missing");
 }
 
@@ -622,7 +622,7 @@ function cameraPreset(name, instant) {
 // Loop
 // ---------------------------------------------------------------------------
 let playing = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-$("play").textContent = playing ? "Pausar" : "Reproducir";
+$("play").textContent = playing ? "Pause" : "Play";
 let last = null;
 const tagPos = new THREE.Vector3();
 
@@ -694,12 +694,12 @@ function restart(keepCamera) {
 $("play").addEventListener("click", () => {
   if (allOut()) { playing = true; restart(true); }
   else playing = !playing;
-  $("play").textContent = playing ? "Pausar" : "Reproducir";
+  $("play").textContent = playing ? "Pause" : "Play";
 });
-$("restart").addEventListener("click", () => { playing = true; $("play").textContent = "Pausar"; restart(true); });
+$("restart").addEventListener("click", () => { playing = true; $("play").textContent = "Pause"; restart(true); });
 $("newplane").addEventListener("click", () => {
   $("seed").value = Math.floor(Math.random() * 4294967296);
-  playing = true; $("play").textContent = "Pausar";
+  playing = true; $("play").textContent = "Pause";
   restart(true);
 });
 $("seed").addEventListener("change", () => restart(true));
