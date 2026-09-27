@@ -37,6 +37,9 @@ CASES = [
                                 dt=0.5, p_prefetch=0.0)),
     dict(seed=4294967295, overrides=dict(p_yield=0.75, rows=10, gap_distance=0.5,
                                          bag_length=0.4, bin_offsets=SPREAD_BINS)),
+    dict(seed=6, overrides=dict(p_yield=0.0, rows=12, p_pair=0.5, p_trio=0.3, p_pause=0.5)),
+    dict(seed=7, overrides=dict(p_yield=1.0, rows=12, p_pair=0.5, p_trio=0.3, p_pause=0.5,
+                                party_max_wait=8.0, bin_offsets=SPREAD_BINS)),
 ]
 
 

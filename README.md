@@ -13,10 +13,12 @@ Monte Carlo, [3D cabins](https://carlosherrerauma.github.io/jet-exit/cabin3d.htm
 
 ## Current result
 
-Over 100 simulated planes with the default parameters, courtesy takes 12:34 and aisle first
-6:48: courtesy is 85% slower. The advantage holds for every parameter tested and shrinks mostly
-when the door is slow (3 s per passenger: +35%). If just one walker in ten yields, about half of
-the advantage is gone.
+Over 100 simulated planes with the default parameters, courtesy takes 13:11 and aisle first
+7:44: courtesy is 70% slower. The advantage holds for every parameter tested; it shrinks most
+when the door is slow (3 s per passenger: +36%), when many people stop on the way out (half of
+them stopping once: +44%), with few bags (+43%) or a half-empty plane (+40%). If just one walker
+in ten yields, about half of the advantage is gone. People travelling together barely change it:
+they wait for each other under either rule.
 
 Many parameters are still estimates. The model is calibrated against the observed overall rate
 (15-17 passengers per minute), but detailed measurements are missing; see [DATA.md](DATA.md)
@@ -59,6 +61,8 @@ still matches Python.
 - In each row the aisle seat leaves first; the others stand up and shuffle sideways.
 - Bags can be above the passenger's row, ahead of it or behind it. Someone whose bag is behind
   and out of reach waits for the aisle to clear, reserves it and walks against the flow.
+- Neighbours may travel together: whoever is in the aisle waits for the others to get out, under
+  either rule. Some people stop once on the way out (a second item, a coat, looking back).
 - Every parameter lives in `Config`, with its unit, source and how to measure it.
   Distributions are quantile tables, so measured data can be pasted in as they are.
 

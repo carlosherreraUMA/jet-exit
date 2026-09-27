@@ -45,14 +45,16 @@
 
   const S = {
     SEATED: 0, READY: 1, TO_EDGE: 2, AT_EDGE: 3, ENTERING: 4,
-    BACKTRACK: 5, RETRIEVING: 6, WALKING: 7, EXITED: 8,
+    BACKTRACK: 5, RETRIEVING: 6, WALKING: 7, EXITED: 8, PAUSED: 9,
   };
   const COLS = "ABCDEF";
   const DIST = { C: 0, D: 0, B: 1, E: 1, A: 2, F: 2 };
   const BLOCKING = { A: ["B", "C"], B: ["C"], C: [], D: [], E: ["D"], F: ["D", "E"] };
   const LEFT = new Set(["A", "B", "C"]);
-  const outOfRow = (st) => st === S.ENTERING || st === S.BACKTRACK || st === S.RETRIEVING
-    || st === S.WALKING || st === S.EXITED;
+  const inAisle = (st) => st === S.ENTERING || st === S.BACKTRACK || st === S.RETRIEVING
+    || st === S.WALKING || st === S.PAUSED;
+  const outOfRow = (st) => inAisle(st) || st === S.EXITED;
+  const stillInRow = (st) => st === S.SEATED || st === S.READY || st === S.TO_EDGE || st === S.AT_EDGE;
 
   // first index whose x >= v (left) or > v (right); `aisle` is sorted by x
   function bisectLeft(aisle, v) {
@@ -83,6 +85,7 @@
       this.fa = new Float64Array(256);   // scratch buffers for freeSpot
       this.fb = new Float64Array(256);
       this.pax = [];
+      this.parties = [];
       this.byRC = new Map();
       this.seatsByRow = Array.from({ length: cfg.rows }, () => []);
       this.generate();
@@ -116,12 +119,45 @@
             offset = sampleDiscrete(cfg.bin_offsets, rng.random());
             prefetch = rng.random() < cfg.p_prefetch;
           }
-          this.addPassenger(row, col, hasBag, prep, stand, lateral, stepIn, v0, depth, bag, offset, prefetch);
+          let pause = 0.0, pauseFrac = 0.0;
+          if (rng.random() < cfg.p_pause) {
+            pauseFrac = rng.random();
+            pause = sampleQuantiles(cfg.pause_time, rng.random());
+          }
+          this.addPassenger(row, col, hasBag, prep, stand, lateral, stepIn, v0, depth, bag, offset, prefetch,
+            pause, pauseFrac);
         }
+        this.makeParties(row);
       }
     }
 
-    addPassenger(row, col, hasBag, prep, stand, lateral, stepIn, v0, depth, bag, binOffset, prefetch) {
+    // Per half-row: a trio, a pair of neighbours, or nobody together.
+    makeParties(row) {
+      const cfg = this.cfg, rng = this.gen;
+      for (const cols of ["CBA", "DEF"]) {
+        const occ = [];
+        for (const c of cols) { const p = this.byRC.get(row * 8 + COLS.indexOf(c)); if (p) occ.push(p); }
+        const u = rng.random();
+        let members = null;
+        if (u < cfg.p_trio && occ.length === 3) members = occ;
+        else if (u < cfg.p_trio + cfg.p_pair && occ.length >= 2) {
+          if (occ.length === 3) members = rng.random() < 0.5 ? occ.slice(0, 2) : occ.slice(1);
+          else members = occ;
+        }
+        if (members) this.addParty(members);
+      }
+    }
+
+    addParty(members) {
+      members = [...members].sort((a, b) => DIST[a.col] - DIST[b.col]);
+      const party = { members, row: members[0].row, released: false, start: -1, gathering: false };
+      for (const m of members) m.party = party;
+      this.parties.push(party);
+      return party;
+    }
+
+    addPassenger(row, col, hasBag, prep, stand, lateral, stepIn, v0, depth, bag, binOffset, prefetch,
+      pause = 0.0, pauseFrac = 0.0) {
       const dist = DIST[col];
       const binRow = hasBag ? Math.min(Math.max(row + binOffset, 0), this.cfg.rows - 1) : row;
       const p = {
@@ -132,8 +168,9 @@
         stepIn: Math.max(1, this.ticks(stepIn)),
         bag: hasBag ? Math.max(1, this.ticks(bag)) : 0,
         v0, depth,
+        pause: pause > 0 ? Math.max(1, this.ticks(pause)) : 0, pauseFrac,
         state: S.SEATED, prepLeft: 0, edgeLeft: 0, enterLeft: 0, bagLeft: 0,
-        carrying: false, x: -1.0, v: 0.0, length: depth,
+        carrying: false, pauseLeft: 0, pausedDone: false, party: null, x: -1.0, v: 0.0, length: depth,
         yieldRow: null, yields: new Map(), blockers: null,
         tReady: -1, tEdge: -1, tEnter: -1, tExit: -1,
       };
@@ -190,6 +227,9 @@
         } else if (st === S.RETRIEVING) {
           if (p.bagLeft > 0) p.bagLeft--;
           if (p.bagLeft === 0) this.tryFinishBag(p);
+        } else if (st === S.PAUSED) {
+          p.pauseLeft--;
+          if (p.pauseLeft <= 0) p.state = S.WALKING;
         }
       }
     }
@@ -243,6 +283,7 @@
         return wants.get(r);
       };
       this.heldRows.clear();
+      for (const party of this.parties) this.updateParty(party);
       for (let k = 0; k < this.aisle.length; k++) {
         const p = this.aisle[k];
         if (p.state === S.BACKTRACK) { this.moveBack(k, p, oldX); continue; }
@@ -285,18 +326,53 @@
         }
         let travel = vNew * dt;
 
-        let target = 0.0, atBin = false;
-        if (this.bagPending(p)) { target = this.binX(p) + cfg.reach / 2; atBin = true; }
+        // stop targets, the nearest one ahead wins: the door, a bin ahead,
+        // the place of a stop on the way, or waiting for companions
+        let target = 0.0, kind = 0;
+        if (this.bagPending(p)) { target = this.binX(p) + cfg.reach / 2; kind = 1; }
+        if (p.pause > 0 && !p.pausedDone) {
+          const px = p.pauseFrac * this.rowX(p.row);
+          if (px > target) { target = px; kind = 2; }
+        }
+        if (p.party !== null && p.party.gathering) {
+          let hx = this.rowX(p.party.row) - (p.party.members.length - 1) * cfg.party_spacing;
+          if (hx > p.x) hx = p.x;
+          if (hx > target) { target = hx; kind = 3; }
+        }
         const limit = p.x - target;
         if (travel >= limit) {
           travel = limit > 0.0 ? limit : 0.0;
           p.x = limit > 0.0 ? target : p.x;
-          if (atBin) p.state = S.RETRIEVING;
+          if (kind === 1) p.state = S.RETRIEVING;
+          else if (kind === 2) { p.state = S.PAUSED; p.pausedDone = true; p.pauseLeft = p.pause; }
         } else {
           p.x = p.x - travel;
         }
         p.v = travel / dt;
       }
+    }
+
+    // Whoever of the group is in the aisle waits for the others, unless someone
+    // else got in between (they will meet outside) or it takes too long.
+    updateParty(party) {
+      party.gathering = false;
+      if (party.released) return;
+      const out = party.members.filter((m) => inAisle(m.state) && m.state !== S.BACKTRACK);
+      if (!out.length) return;
+      const waiting = party.members.filter((m) => stillInRow(m.state)
+        && !(this.bagPending(m) && this.needsBacktrack(m)));
+      if (!waiting.length) { party.released = true; return; }
+      if (party.start < 0) party.start = this.tick;
+      if (this.tick - party.start > this.ticks(this.cfg.party_max_wait)) { party.released = true; return; }
+      let rear = out[0];
+      for (const m of out) if (m.x > rear.x) rear = m;
+      const k = this.aisle.indexOf(rear);
+      if (k + 1 < this.aisle.length) {
+        const f = this.aisle[k + 1];
+        const backEdge = this.rowX(party.row) + this.cfg.seat_pitch / 2;
+        if (f.party !== party && f.x - f.length / 2 < backEdge) { party.released = true; return; }
+      }
+      party.gathering = true;
     }
 
     moveBack(k, p, oldX) {

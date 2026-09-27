@@ -48,13 +48,14 @@ STATE_COLOR = {
     PaxState.BACKTRACK: "\033[95m",   # magenta -- walking back to a bin
     PaxState.RETRIEVING: "\033[95m",  # magenta -- taking bag, blocking
     PaxState.WALKING: "\033[94m",     # blue    -- walking to the door
+    PaxState.PAUSED: "\033[95m",      # magenta -- stopped once on the way
 }
 SEAT_GLYPH = {
     PaxState.SEATED: "▪", PaxState.READY: "○", PaxState.TO_EDGE: "●", PaxState.AT_EDGE: "●",
 }
 AISLE_GLYPH = {
     PaxState.ENTERING: "E", PaxState.BACKTRACK: "▼", PaxState.RETRIEVING: "B",
-    PaxState.WALKING: "▲",
+    PaxState.WALKING: "▲", PaxState.PAUSED: "h",
 }
 
 USE_COLOR = True
@@ -124,7 +125,7 @@ def legend() -> str:
         f"{c(STATE_COLOR[PaxState.READY], '○ ready')}  "
         f"{c(STATE_COLOR[PaxState.AT_EDGE], '● getting out')}  "
         f"{c(STATE_COLOR[PaxState.ENTERING], 'E entering')}  "
-        f"{c(STATE_COLOR[PaxState.RETRIEVING], 'B bag  ▼ back to bin')}  "
+        f"{c(STATE_COLOR[PaxState.RETRIEVING], 'B bag  ▼ back to bin  h stop on the way')}  "
         f"{c(STATE_COLOR[PaxState.WALKING], '▲ walking  ‖ letting a row out')}"
     )
 

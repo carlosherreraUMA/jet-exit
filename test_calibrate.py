@@ -40,7 +40,8 @@ class TestSyntheticRecovery(unittest.TestCase):
 
     def test_everything_estimable_is_estimated(self):
         for param in ("prep_time", "stand_time", "bag_time", "p_bag", "p_prefetch",
-                      "bin_offsets", "p_yield", "door_headway"):
+                      "bin_offsets", "p_yield", "door_headway", "p_pause", "pause_time",
+                      "p_pair", "p_trio"):
             self.assertIn(param, self.est, self.notes)
 
     def test_bag_time_recovered(self):
@@ -58,6 +59,13 @@ class TestSyntheticRecovery(unittest.TestCase):
         self.assertAlmostEqual(self.est["door_headway"], cfg.door_headway, delta=0.25)
         share_own_row = dict(self.est["bin_offsets"])[0]
         self.assertAlmostEqual(share_own_row, dict(cfg.bin_offsets)[0], delta=0.07)
+
+    def test_groups_and_stops_recovered(self):
+        cfg = Config()
+        self.assertAlmostEqual(self.est["p_pause"], cfg.p_pause, delta=0.06)
+        self.assertAlmostEqual(median_of(self.est["pause_time"]), median_of(cfg.pause_time), delta=1.2)
+        self.assertAlmostEqual(self.est["p_pair"], cfg.p_pair, delta=0.1)
+        self.assertAlmostEqual(self.est["p_trio"], cfg.p_trio, delta=0.06)
 
     def test_calibrated_config_runs(self):
         cfg = calibrated_config([])

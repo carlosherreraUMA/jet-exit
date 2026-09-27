@@ -267,6 +267,12 @@ const EVENTS = [
     def: "Starts walking back, against the flow, to reach their bag." },
   { key: "W", ev: "walk", label: "Starts walking",
     def: "Starts walking towards the door." },
+  { key: "H", ev: "pause", label: "Halts on the way",
+    def: "Stops once on the way to the door: a second item, a coat, looking back." },
+  { key: "M", ev: "resume", label: "Moves on",
+    def: "Starts moving again after that stop." },
+  { key: "G", ev: "party", label: "Travels with previous", withPrev: true,
+    def: "Travels together with the passenger you had selected just before: pick one, then the other, then press G." },
   { key: "X", ev: "exit", label: "Exits",
     def: "Goes through the door." },
   { key: "U", ev: "door", label: "Someone exits", global: true,
@@ -278,6 +284,7 @@ const LABEL = Object.fromEntries(EVENTS.map((e) => [e.ev, e.label]));
 // ---- state -----------------------------------------------------------------
 let marks = [];            // { t, who, event, value }
 let selected = null;       // "12C"
+let previous = null;       // the seat selected before, for "travels with"
 const STORE = "deboarding-annotator:";
 
 function rows() { return Math.max(4, Math.min(60, Number($("rows").value) || 30)); }
@@ -383,6 +390,7 @@ function paintSeats() {
   }
 }
 function select(seat) {
+  if (seat !== selected) previous = selected;
   selected = seat;
   $("seat-label").textContent = seat;
   $("bin").value = parseInt(seat, 10);
@@ -397,8 +405,12 @@ function flash(text) { $("flash").textContent = text; clearTimeout(flash.t); fla
 function mark(e) {
   if (!video.src) { flash("Load a video first"); return; }
   if (!e.global && !selected) { flash("Pick a seat first"); return; }
+  if (e.withPrev && (!previous || previous === selected)) {
+    flash("Select the companion first, then this passenger"); return;
+  }
   const m = { t: +realTime(video.currentTime).toFixed(2), who: e.global ? "" : selected, event: e.ev, value: "" };
   if (e.withBin) m.value = String(Number($("bin").value) || parseInt(selected, 10));
+  if (e.withPrev) m.value = previous;
   marks.push(m);
   marks.sort((a, b) => a.t - b.t);
   flash(`${m.who || "flight"} · ${e.label} · ${fmt(m.t)}`);
@@ -485,7 +497,7 @@ function renderCoverage() {
   const people = {};
   for (const m of marks) if (m.who) (people[m.who] ||= {})[m.event] ??= m;
   const belt = marks.find((m) => m.event === "belt_off");
-  const n = { prep: 0, stand: 0, bag: 0, bins: 0, steps: 0, lets: 0, exits: 0 };
+  const n = { prep: 0, stand: 0, bag: 0, bins: 0, steps: 0, lets: 0, exits: 0, pauses: 0, followed: 0, groups: 0 };
   for (const [who, e] of Object.entries(people)) {
     const aisleSeat = /[CD]$/.test(who);
     if (belt && e.stand && aisleSeat) n.prep++;
@@ -494,6 +506,9 @@ function renderCoverage() {
     if (e.bin_open && e.bin_open.value) n.bins++;
     if (e.step_in) n.steps++;
     if (e.let_in || e.no_let_in) n.lets++;
+    if (e.pause && e.resume) n.pauses++;
+    if (e.exit) n.followed++;
+    if (e.party) n.groups++;
   }
   n.exits = Math.max(0, marks.filter((m) => m.event === "exit" || m.event === "door").length - 1);
   const rowsCov = [
@@ -501,6 +516,8 @@ function renderCoverage() {
     ["Yielded to or not", n.lets], ["Door rate", n.exits],
     ["Have an overhead bag", n.steps], ["Seated preparation (aisle seats)", n.prep],
     ["Standing up (aisle seats)", n.stand],
+    ["Stops on the way (duration)", n.pauses], ["Followed to the door", n.followed],
+    ["Travelling-together marks", n.groups],
   ];
   $("coverage").innerHTML = rowsCov.map(([label, v]) =>
     `<span>${label}</span><span class="${v >= 8 ? "ok" : "low"}">${v}${v >= 8 ? " ✓" : " / 8"}</span>`).join("");

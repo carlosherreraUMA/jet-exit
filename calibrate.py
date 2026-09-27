@@ -44,6 +44,9 @@ Annotation format (CSV, one row per event, times in real seconds):
           bag_down  bag on the floor or in hand, ready to go
           back      starts walking back against the flow to reach a bin
           walk      starts walking towards the door
+          pause     stops once on the way (second item, coat, looking back)
+          resume    moves on again after that stop
+          party     travels with the seat in value (e.g. who=12B, value=12C)
           exit      passes the door
           door      someone (unidentified) passes the door
           meta      value = "key=value" (aircraft, rows, camera, speed...)
@@ -66,7 +69,7 @@ from simulate_deboarding import (
 )
 
 EVENTS = {"belt_off", "stand", "edge", "step_in", "let_in", "no_let_in", "bin_open",
-          "bag_down", "back", "walk", "exit", "door", "meta"}
+          "bag_down", "back", "walk", "pause", "resume", "party", "exit", "door", "meta"}
 QUANTILE_PS = (0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0)
 
 
@@ -81,6 +84,7 @@ class Person:
     col: str
     events: dict[str, float] = field(default_factory=dict)   # first time of each event
     bin_row: int | None = None
+    travels_with: str | None = None
 
 
 @dataclass
@@ -125,6 +129,8 @@ def read_flights(paths: list[str]) -> list[Flight]:
                     p.events.setdefault(ev, t)
                     if ev == "bin_open" and value:
                         p.bin_row = int(value) - 1
+                    if ev == "party" and value:
+                        p.travels_with = value.strip().upper()
                     if ev == "exit":
                         fl.exits.append(t)
     for fl in flights.values():
@@ -212,6 +218,31 @@ def estimate(flights: list[Flight], min_n: int = 8) -> tuple[list[Estimate], lis
                 samples["_to_edge_" + str(dist)].append(p.events["edge"] - start)
         gaps = [b - a for a, b in zip(fl.exits, fl.exits[1:])]
         door_gaps.extend(gaps)
+        # stops on the way, among people followed all the way to the door
+        for p in fl.people.values():
+            e = p.events
+            if "exit" in e:
+                counts["followed_out"] += 1
+                if "pause" in e:
+                    counts["paused"] += 1
+            if "pause" in e and "resume" in e and e["resume"] > e["pause"]:
+                samples["pause_time"].append(e["resume"] - e["pause"])
+        # groups: link seats marked as travelling together
+        parent = {w: w for w in fl.people}
+        def find(w):
+            while parent[w] != w:
+                parent[w] = parent[parent[w]]
+                w = parent[w]
+            return w
+        for p in fl.people.values():
+            if p.travels_with and p.travels_with in parent:
+                parent[find(p.who)] = find(p.travels_with)
+        sizes = defaultdict(int)
+        for w in fl.people:
+            sizes[find(w)] += 1
+        counts["pairs"] += sum(1 for n in sizes.values() if n == 2)
+        counts["trios"] += sum(1 for n in sizes.values() if n >= 3)
+        counts["half_rows"] += len({(p.row, p.col in "ABC") for p in fl.people.values()})
 
     est: list[Estimate] = []
     notes: list[str] = []
@@ -261,6 +292,19 @@ def estimate(flights: list[Flight], min_n: int = 8) -> tuple[list[Estimate], lis
                             "let_in / (let_in + no_let_in)"))
     else:
         notes.append(f"p_yield: {decided} step-ins marked let_in / no_let_in (need {min_n})")
+    add_quantiles("pause_time", samples["pause_time"], "resume - pause")
+    if counts["followed_out"] >= min_n:
+        est.append(Estimate("p_pause", round(counts["paused"] / counts["followed_out"], 3),
+                            counts["followed_out"], "people followed to the door who stopped once"))
+    else:
+        notes.append(f"p_pause: {counts['followed_out']} people followed to the door (need {min_n})")
+    if counts["half_rows"] >= min_n:
+        est.append(Estimate("p_pair", round(counts["pairs"] / counts["half_rows"], 3), counts["half_rows"],
+                            "pairs marked as travelling together / half-rows seen (rough)"))
+        est.append(Estimate("p_trio", round(counts["trios"] / counts["half_rows"], 3), counts["half_rows"],
+                            "trios marked as travelling together / half-rows seen (rough)"))
+    else:
+        notes.append(f"p_pair, p_trio: {counts['half_rows']} half-rows seen (need {min_n})")
     if len(door_gaps) >= min_n:
         s = sorted(door_gaps)
         est.append(Estimate("door_headway", round(s[int(0.1 * (len(s) - 1))], 2), len(s),
@@ -291,6 +335,11 @@ def synthetic_annotations(sim: Simulator, video: str) -> list[dict]:
     def log(p, event, value=""):
         rows.append(dict(video=video, t=round(sim.time, 3), who=f"{p.row + 1}{p.col}",
                          event=event, value=value, note=""))
+
+    for party in sim.parties:
+        lead = party.members[0]
+        for m in party.members[1:]:
+            log(m, "party", f"{lead.row + 1}{lead.col}")
 
     def coming(r: int) -> bool:
         # the nearest person behind row r is walking and less than 2 m away
@@ -323,6 +372,10 @@ def synthetic_annotations(sim: Simulator, video: str) -> list[dict]:
                     log(p, "bin_open", str(p.bin_row + 1))
                 elif st == PaxState.WALKING and was in (PaxState.RETRIEVING, PaxState.ENTERING):
                     log(p, "walk")
+                elif st == PaxState.PAUSED:
+                    log(p, "pause")
+                elif st == PaxState.WALKING and was == PaxState.PAUSED:
+                    log(p, "resume")
                 elif st == PaxState.EXITED:
                     log(p, "exit")
             if (st == PaxState.AT_EDGE and p.has_bag and prev_bag[p.pid] == p.bag

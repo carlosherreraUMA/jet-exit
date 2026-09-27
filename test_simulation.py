@@ -91,6 +91,25 @@ class TestHandComputed(unittest.TestCase):
         self.assertTrue(seen_back)
         self.assertLess(sim.passengers[1].t_exit, back.t_exit)
 
+    def test_a_pair_leaves_together(self):
+        """1C waits in the aisle for 1B when they travel together."""
+        def gap(parties):
+            sim = Simulator(rows=2, p_yield=0.0, manifest=[
+                pax(0, "C"), pax(0, "B", prep=4.0), pax(1, "C", prep=30.0),
+            ], parties=parties, **HAND)
+            sim.run()
+            c, b = sim.passengers[0], sim.passengers[1]
+            return (b.t_exit - c.t_exit) * sim.dt
+        together, alone = gap([["1C", "1B"]]), gap([])
+        self.assertLess(together, 2.0)
+        self.assertGreater(alone, together + 2.0)
+
+    def test_a_stop_on_the_way_costs_its_time(self):
+        plain = Simulator(rows=4, manifest=[pax(3, "C")], **HAND).run()
+        stop = Simulator(rows=4, manifest=[pax(3, "C", pause=5.0, pause_frac=0.5)], **HAND).run()
+        self.assertGreaterEqual(stop - plain, 5.0)
+        self.assertLess(stop - plain, 6.5)
+
     def test_empty_plane(self):
         sim = Simulator(p_occupancy=0.0, seed=1, rows=5)
         self.assertEqual(len(sim.passengers), 0)
@@ -115,7 +134,7 @@ class TestInvariants(unittest.TestCase):
                                         f"overlap at t={sim.time}: {a.pid}/{b.pid} gap {gap:.3f}")
             for p in aisle:
                 self.assertIn(p.state, (PaxState.ENTERING, PaxState.BACKTRACK,
-                                        PaxState.RETRIEVING, PaxState.WALKING))
+                                        PaxState.RETRIEVING, PaxState.WALKING, PaxState.PAUSED))
                 self.assertGreaterEqual(p.x, 0.0)
             # nobody overtakes
             pids = [p.pid for p in aisle]
@@ -153,6 +172,11 @@ class TestInvariants(unittest.TestCase):
         sim.run(max_ticks=20000)
         self.assertEqual(sim.n_inside, 0)
 
+    def test_invariants_many_groups_and_stops(self):
+        for seed, p_yield in ((9, 1.0), (10, 0.0), (11, 0.5)):
+            with self.subTest(seed=seed, p_yield=p_yield):
+                self.check_run(seed=seed, p_yield=p_yield, p_pair=0.5, p_trio=0.3, p_pause=0.5)
+
     def test_invariants_many_bags_elsewhere(self):
         spread = ((-3, 0.15), (-1, 0.15), (0, 0.2), (1, 0.15), (2, 0.15), (3, 0.2))
         for seed, p_yield in ((7, 1.0), (8, 0.0)):
@@ -165,7 +189,8 @@ class TestModelProperties(unittest.TestCase):
     def test_same_passengers_for_any_policy(self):
         """Common random numbers: p_yield must not change who is on board."""
         sig = lambda s: [(p.row, p.col, p.has_bag, p.bin_row, p.prefetch, p.prep, p.to_edge,
-                          p.step_in, p.bag, p.v0, p.depth) for p in s.passengers]
+                          p.step_in, p.bag, p.v0, p.depth, p.pause, p.pause_frac,
+                          p.party and [m.pid for m in p.party.members]) for p in s.passengers]
         self.assertEqual(sig(Simulator(rows=10, p_yield=0.0, seed=7)),
                          sig(Simulator(rows=10, p_yield=1.0, seed=7)))
 
@@ -179,6 +204,7 @@ class TestModelProperties(unittest.TestCase):
     def test_no_bags_no_prep_is_door_limited(self):
         for p_yield in (0.0, 1.0):
             sim = Simulator(rows=6, p_bag=0.0, prep_time=((0, 0.0), (1, 0.0)),
+                            p_pause=0.0, p_pair=0.0, p_trio=0.0,
                             door_headway=6.0, p_yield=p_yield, seed=1)
             n = len(sim.passengers)
             self.assertAlmostEqual(sim.run(), 6.0 * (n - 1), delta=10.0)

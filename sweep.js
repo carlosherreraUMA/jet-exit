@@ -37,12 +37,18 @@ const SWEEPS = {
   bag_scale: [0.5, 1.0, 1.5, 2.0],
   bins_elsewhere: [0.0, 0.28, 0.5],
   gap_distance: [0.5, 1.0, 2.0],
+  party_share: [0.0, 0.33, 0.6],
+  p_pause: [0.0, 0.15, 0.3, 0.5],
 };
 function withOverride(cfg, param, value) {
   if (param === "bag_scale") return { ...cfg, bag_time: cfg.bag_time.map(([p, v]) => [p, v * value]) };
   if (param === "bins_elsewhere") {
     const total = cfg.bin_offsets.filter(([o]) => o !== 0).reduce((s, [, w]) => s + w, 0);
     return { ...cfg, bin_offsets: cfg.bin_offsets.map(([o, w]) => [o, o === 0 ? 1 - value : w / total * value]) };
+  }
+  if (param === "party_share") {
+    const total = cfg.p_pair + cfg.p_trio;
+    return { ...cfg, p_pair: cfg.p_pair / total * value, p_trio: cfg.p_trio / total * value };
   }
   return { ...cfg, [param]: value };
 }

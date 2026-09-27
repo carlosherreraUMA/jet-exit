@@ -43,7 +43,10 @@ up, which gaps people accept). Those data still have to be collected.
    which gaps people accept when stepping out without being let in.
 6. **`s0`, `headway`, `start_gap`, `body_depth`**: people per metre in a stopped queue and how
    fast a queue gets moving (measured as how long the Nth person takes to move after the first).
-7. **`prep_time`, `stand_time`, `lateral_time`, `step_in_time`**: times inside the row.
+7. **`p_pause`, `pause_time`**: how many people stop once on the way to the door, and for how
+   long. Stops hurt aisle first much more than courtesy, so this matters for the conclusion.
+8. **`p_pair`, `p_trio`**: neighbours who travel together and wait for each other.
+9. **`prep_time`, `stand_time`, `lateral_time`, `step_in_time`**: times inside the row.
 
 ## Measuring it on video
 
@@ -54,8 +57,9 @@ up, which gaps people accept). Those data still have to be collected.
 2. Pick a passenger on the seat map, or type row and letter (`12c`), and mark their events with
    one key as the video plays: `S` stands up, `E` at the row edge, `A` steps into the aisle,
    `Y`/`N` someone yields or nobody yields, `B` opens the bin (with the bin row), `D` bag down,
-   `R` walks back, `W` starts walking, `X` exits. For the whole flight: `O` seatbelt sign off,
-   `U` someone you are not following exits.
+   `R` walks back, `W` starts walking, `H` halts on the way, `M` moves on again, `X` exits.
+   To mark people travelling together, select one, then the other, and press `G`.
+   For the whole flight: `O` seatbelt sign off, `U` someone you are not following exits.
 3. Copy the CSV and calibrate:
    ```
    python calibrate.py flight1.csv flight2.csv --out calibrated.json --validate

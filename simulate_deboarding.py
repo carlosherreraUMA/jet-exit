@@ -45,6 +45,8 @@ data can be pasted in directly.
      RETRIEVING  taking the bag down in the aisle, blocking it: bag_time.
      WALKING     moving to the door (possibly stopped in the queue).  With a
                  bag in hand they are `bag_length` longer and walk slower.
+     PAUSED      a share `p_pause` stop once on the way out, blocking the aisle
+                 for `pause_time` (a second item, a coat, looking back).
      EXITED
 
 3. Aisle movement (car-following, parallel update each tick of `dt`).  Each
@@ -72,9 +74,16 @@ data can be pasted in directly.
    the nearest walker behind the row is farther than
    gap_distance + speed * gap_time from the row's back edge.
 
-8. Door.  One passenger leaves every `door_headway` seconds at most.
+8. Groups.  Per half-row, neighbours may travel together (`p_pair`,
+   `p_trio`).  Whoever of the group is in the aisle stops a little ahead of
+   the row (`party_spacing` per companion) and waits for the others to step
+   out behind them -- letting their partner out, whatever the policy.  They
+   stop waiting when everyone is out, when someone else gets in between (they
+   meet outside), or after `party_max_wait`.
 
-9. Randomness.  A small portable PRNG (mulberry32) and only + - * / sqrt, so
+9. Door.  One passenger leaves every `door_headway` seconds at most.
+
+10. Randomness.  A small portable PRNG (mulberry32) and only + - * / sqrt, so
    the web version (web/index.html) reproduces runs bit for bit.  Passenger
    generation and yield decisions use separate streams, so different p_yield
    values see the same passengers (paired comparisons).
@@ -180,9 +189,24 @@ class Config:
         EST + "; Vink 2019 reports bags stored further back", "video: row of seat vs row of bin")
     p_prefetch: float = _p(0.8, "prob",
                            "Bag owners who take the bag down standing in their row if it is in reach",
-                           "calibrated: courtesy gives 14-15 pax/min (observed 15-17, Wald 2014) and "
-                           "12.7 min for a full A320 (Vink 2019: 6:27-13:00)",
+                           "calibrated before groups and stops were added; courtesy now gives ~14 pax/min "
+                           "and 13.2 min for a full A320, slightly slow against the observed 15-17 pax/min "
+                           "(Wald 2014) and 6:27-13:00 (Vink 2019)",
                            "video: bag taken before or after stepping into the aisle")
+    # -- groups and stops on the way -----------------------------------------
+    p_pair: float = _p(0.25, "prob", "Half-rows (3 seats) where two neighbours travel together", EST,
+                       "video: neighbours who wait for each other to leave")
+    p_trio: float = _p(0.08, "prob", "Half-rows where three neighbours travel together", EST,
+                       "video: neighbours who wait for each other to leave")
+    party_spacing: float = _p(0.55, "m",
+                              "Room the first of a group leaves per companion while waiting in the aisle",
+                              EST)
+    party_max_wait: float = _p(30.0, "s", "Longest a group waits in the aisle for its companions", EST)
+    p_pause: float = _p(0.15, "prob",
+                        "Passengers who stop once on the way out (second item, coat, looking back)",
+                        EST, "video: stops while walking to the door")
+    pause_time: Quantiles = _p(((0.0, 1.5), (0.5, 4.0), (1.0, 12.0)), "s", "How long that stop lasts",
+                               EST, "video: stops -> moves again")
     # -- bodies and walking --------------------------------------------------
     body_depth: Quantiles = _p(((0.0, 0.28), (0.5, 0.34), (1.0, 0.45)), "m",
                                "Front-to-back aisle length a standing person occupies", EST,
@@ -265,6 +289,7 @@ class PaxState(IntEnum):
     RETRIEVING = 6
     WALKING = 7
     EXITED = 8
+    PAUSED = 9          # stopped once on the way to the door
 
 
 # Columns: A B C | aisle | D E F
@@ -278,7 +303,9 @@ BLOCKING_COLUMNS = {
     "E": ["D"],
     "F": ["D", "E"],
 }
-IN_AISLE = (PaxState.ENTERING, PaxState.BACKTRACK, PaxState.RETRIEVING, PaxState.WALKING)
+IN_AISLE = (PaxState.ENTERING, PaxState.BACKTRACK, PaxState.RETRIEVING, PaxState.WALKING,
+            PaxState.PAUSED)
+STILL_IN_ROW = (PaxState.SEATED, PaxState.READY, PaxState.TO_EDGE, PaxState.AT_EDGE)
 OUT_OF_ROW = IN_AISLE + (PaxState.EXITED,)
 
 POLICIES = {"courtesy": 1.0, "aisle_priority": 0.0}
@@ -302,12 +329,17 @@ class Passenger:
     bag: int            # ticks (0 if no bag)
     v0: float           # free walking speed, m/s
     depth: float        # body depth, m
+    pause: int = 0      # ticks of the stop on the way out (0 = none)
+    pause_frac: float = 0.0   # where: this fraction of the way from the door to the row
     state: PaxState = PaxState.SEATED
     prep_left: int = 0
     edge_left: int = 0
     enter_left: int = 0
     bag_left: int = 0
     carrying: bool = False
+    pause_left: int = 0
+    paused_done: bool = False
+    party: Optional["Party"] = None
     x: float = -1.0     # aisle position (m from the door) while in the aisle
     v: float = 0.0
     length: float = 0.0
@@ -329,6 +361,16 @@ class Passenger:
         return self.col in LEFT_HALF
 
 
+@dataclass(eq=False)
+class Party:
+    """Neighbours travelling together: whoever is in the aisle waits for the rest."""
+    members: list[Passenger]      # aisle seat first
+    row: int
+    released: bool = False        # together, split up, or gave up waiting
+    start: int = -1               # tick the first of them stepped into the aisle
+    gathering: bool = False       # someone of the group is waiting in the aisle (this tick)
+
+
 @dataclass
 class Reservation:
     owner: Passenger
@@ -344,7 +386,8 @@ class Simulator:
     """Tick-based continuous-aisle deboarding simulator."""
 
     def __init__(self, config: Config | None = None, seed: int = 0,
-                 manifest: list[dict] | None = None, debug: bool = False, **overrides):
+                 manifest: list[dict] | None = None, parties: list[list[str]] | None = None,
+                 debug: bool = False, **overrides):
         self.cfg = cfg = replace(config or Config(), **overrides)
         self.debug = debug
         self.dt = cfg.dt
@@ -361,6 +404,7 @@ class Simulator:
         self._held_rows: set[int] = set()           # rows a walker is holding back for
 
         self.passengers: list[Passenger] = []
+        self.parties: list[Party] = []
         self._pax_by_row_col: dict[tuple[int, str], Passenger] = {}
         self.seats_by_row: list[list[Passenger]] = [[] for _ in range(cfg.rows)]
         if manifest is None:
@@ -368,6 +412,8 @@ class Simulator:
         else:
             for spec in manifest:
                 self.add_passenger(**spec)
+            for seats in parties or []:
+                self.add_party([self._pax_by_row_col[(int(s[:-1]) - 1, s[-1].upper())] for s in seats])
         self._link_blockers()
         self.n_inside = len(self.passengers)
 
@@ -399,17 +445,48 @@ class Simulator:
                     bag = sample_quantiles(cfg.bag_time, rng.random())
                     offset = sample_discrete(cfg.bin_offsets, rng.random())
                     prefetch = rng.random() < cfg.p_prefetch
+                pause = 0.0
+                pause_frac = 0.0
+                if rng.random() < cfg.p_pause:
+                    pause_frac = rng.random()
+                    pause = sample_quantiles(cfg.pause_time, rng.random())
                 self.add_passenger(
                     row=row, col=col, has_bag=has_bag, prep=prep, stand=stand,
                     lateral=lateral, step_in=step_in, v0=v0, depth=depth, bag=bag,
-                    bin_offset=offset, prefetch=prefetch,
+                    bin_offset=offset, prefetch=prefetch, pause=pause, pause_frac=pause_frac,
                 )
+            self._make_parties(row)
+
+    def _make_parties(self, row: int) -> None:
+        """Per half-row: a trio, a pair of neighbours, or nobody together."""
+        cfg, rng = self.cfg, self.gen_rng
+        for cols in ("CBA", "DEF"):
+            occ = [p for c in cols if (p := self._pax_by_row_col.get((row, c))) is not None]
+            u = rng.random()
+            members = None
+            if u < cfg.p_trio and len(occ) == 3:
+                members = occ
+            elif u < cfg.p_trio + cfg.p_pair and len(occ) >= 2:
+                if len(occ) == 3:
+                    members = occ[:2] if rng.random() < 0.5 else occ[1:]
+                else:
+                    members = occ
+            if members:
+                self.add_party(members)
+
+    def add_party(self, members: list[Passenger]) -> Party:
+        members = sorted(members, key=lambda p: COLUMN_AISLE_DISTANCE[p.col])
+        party = Party(members=members, row=members[0].row)
+        for m in members:
+            m.party = party
+        self.parties.append(party)
+        return party
 
     def add_passenger(
         self, row: int, col: str, has_bag: bool = False, prep: float = 0.0,
         stand: float = 1.0, lateral: float = 1.0, step_in: float = 1.0,
         v0: float = 0.8, depth: float = 0.34, bag: float = 0.0,
-        bin_offset: int = 0, prefetch: bool = False,
+        bin_offset: int = 0, prefetch: bool = False, pause: float = 0.0, pause_frac: float = 0.0,
     ) -> Passenger:
         """Add a passenger; times in seconds (converted to whole ticks)."""
         dist = COLUMN_AISLE_DISTANCE[col]
@@ -422,6 +499,7 @@ class Simulator:
             step_in=max(1, self._ticks(step_in)),
             bag=max(1, self._ticks(bag)) if has_bag else 0,
             v0=v0, depth=depth,
+            pause=max(1, self._ticks(pause)) if pause > 0 else 0, pause_frac=pause_frac,
         )
         self.passengers.append(pax)
         self._pax_by_row_col[(row, col)] = pax
@@ -504,6 +582,10 @@ class Simulator:
                     p.bag_left -= 1
                 if p.bag_left == 0:
                     self._try_finish_bag(p)
+            elif st == PaxState.PAUSED:
+                p.pause_left -= 1
+                if p.pause_left <= 0:
+                    p.state = PaxState.WALKING
 
     def _after_entering(self, p: Passenger) -> None:
         p.v = 0.0
@@ -558,6 +640,8 @@ class Simulator:
         old_x = [p.x for p in self.aisle]
         wants: dict[int, bool] = {}
         self._held_rows.clear()
+        for party in self.parties:
+            self._update_party(party)
 
         def row_wants(r: int) -> bool:
             if r not in wants:
@@ -613,21 +697,68 @@ class Simulator:
                     v_new = 0.0
             travel = v_new * dt
 
-            # stop targets: the door, or a bin ahead
+            # stop targets, the nearest one ahead wins: the door, a bin ahead,
+            # the place of a stop on the way, or waiting for companions
             target = 0.0
-            at_bin = False
+            kind = 0
             if self._bag_pending(p):
                 target = self.bin_x(p) + cfg.reach / 2
-                at_bin = True
+                kind = 1
+            if p.pause > 0 and not p.paused_done:
+                px = p.pause_frac * self.row_x(p.row)
+                if px > target:
+                    target = px
+                    kind = 2
+            if p.party is not None and p.party.gathering:
+                hx = self.row_x(p.party.row) - (len(p.party.members) - 1) * cfg.party_spacing
+                if hx > p.x:
+                    hx = p.x
+                if hx > target:
+                    target = hx
+                    kind = 3
             limit = p.x - target
             if travel >= limit:
                 travel = limit if limit > 0.0 else 0.0
                 p.x = target if limit > 0.0 else p.x
-                if at_bin:
+                if kind == 1:
                     p.state = PaxState.RETRIEVING
+                elif kind == 2:
+                    p.state = PaxState.PAUSED
+                    p.paused_done = True
+                    p.pause_left = p.pause
             else:
                 p.x = p.x - travel
             p.v = travel / dt
+
+    def _update_party(self, party: Party) -> None:
+        """Whoever of the group is in the aisle waits for the others, unless
+        someone else got in between (they will meet outside) or it takes too long."""
+        party.gathering = False
+        if party.released:
+            return
+        out = [m for m in party.members
+               if m.state in IN_AISLE and m.state != PaxState.BACKTRACK]
+        if not out:
+            return
+        waiting = [m for m in party.members if m.state in STILL_IN_ROW
+                   and not (self._bag_pending(m) and self.needs_backtrack(m))]
+        if not waiting:
+            party.released = True
+            return
+        if party.start < 0:
+            party.start = self.tick
+        if self.tick - party.start > self._ticks(self.cfg.party_max_wait):
+            party.released = True
+            return
+        rear = max(out, key=_x)
+        k = self.aisle.index(rear)
+        if k + 1 < len(self.aisle):
+            f = self.aisle[k + 1]
+            back_edge = self.row_x(party.row) + self.cfg.seat_pitch / 2
+            if f.party is not party and f.x - f.length / 2 < back_edge:
+                party.released = True
+                return
+        party.gathering = True
 
     def _move_back(self, k: int, p: Passenger, old_x: list[float]) -> None:
         cfg = self.cfg
@@ -921,6 +1052,8 @@ SWEEPS = {
     "bag_scale": [0.5, 1.0, 1.5, 2.0],
     "bins_elsewhere": [0.0, 0.28, 0.5],
     "gap_distance": [0.5, 1.0, 2.0],
+    "party_share": [0.0, 0.33, 0.6],
+    "p_pause": [0.0, 0.15, 0.3, 0.5],
 }
 
 
@@ -934,6 +1067,10 @@ def _with_override(cfg: Config, param: str, value) -> Config:
         table = tuple((o, (1 - value) if o == 0 else w / total * value)
                       for o, w in cfg.bin_offsets)
         return replace(cfg, bin_offsets=table)
+    if param == "party_share":
+        # share of half-rows travelling together, keeping the pair/trio ratio
+        total = cfg.p_pair + cfg.p_trio
+        return replace(cfg, p_pair=cfg.p_pair / total * value, p_trio=cfg.p_trio / total * value)
     return replace(cfg, **{param: value})
 
 

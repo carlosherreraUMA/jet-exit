@@ -195,7 +195,7 @@
     <span><span class="swatch" style="background: var(--preparing)"></span>Getting ready</span>
     <span><span class="swatch" style="background: var(--waiting)"></span>Getting out of the row</span>
     <span><span class="swatch" style="background: var(--entering)"></span>Stepping into the aisle</span>
-    <span><span class="swatch" style="background: var(--bag)"></span>Taking a bag down, or walking back for it</span>
+    <span><span class="swatch" style="background: var(--bag)"></span>Taking a bag down, walking back for it, or stopped on the way</span>
     <span><span class="swatch" style="background: var(--walking)"></span>Walking</span>
     <span><svg width="16" height="10" viewBox="0 0 16 10"><ellipse cx="8" cy="5" rx="7" ry="3.5" fill="none" stroke="var(--ink)" stroke-width="1.6"/></svg>Stopped to let a row out</span>
     <span class="hint">Drag to rotate · scroll or pinch to zoom</span>
@@ -408,6 +408,11 @@ function posePerson(fig, p, sim, a, z0, dtFrame, renderT) {
         yaw = side < 0 ? -Math.PI / 2 : Math.PI / 2;           // face the bins on their side
         raise = 1;
         bagProgress = p.bagLeft === 0 ? 1 : prog(p.bag, p.bagLeft);
+      } else if (p.state === S.PAUSED) {                       // grabbing something on the way
+        shirt = M.bag;
+        yaw = side < 0 ? -Math.PI / 2 : Math.PI / 2;
+        raise = 1;
+        if (p.carrying) bag = "hand";
       } else if (p.state === S.BACKTRACK) {
         shirt = M.bag;
         yaw = Math.PI;
